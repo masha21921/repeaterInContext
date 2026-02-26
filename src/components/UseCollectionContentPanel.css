@@ -1,0 +1,94 @@
+/* Field type icons in Use collection content panel */
+.field-type-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.field-type-icon--text { color: #8b9dc3; }
+.field-type-icon--link { color: #7ba67b; }
+.field-type-icon--number { color: #c9a86c; }
+.field-type-icon--image { color: #a67bc9; }
+.field-type-icon--array { color: #c97b9a; }
+
+/* Custom Field dropdown */
+.use-collection-content-panel__field-wrap {
+  position: relative;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.use-collection-content-panel__field-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.95);
+  background: #3a3a45;
+  border: 1px solid #4a4a55;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.use-collection-content-panel__field-btn:hover {
+  background: #424250;
+  border-color: #5a5a65;
+}
+
+.use-collection-content-panel__field-btn-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.use-collection-content-panel__field-btn-arrow {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+.use-collection-content-panel__field-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #2a2a30;
+  border: 1px solid #4a4a55;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.use-collection-content-panel__field-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.use-collection-content-panel__field-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.use-collection-content-panel__field-option--selected {
+  background: rgba(26, 115, 232, 0.15);
+}
+
+.use-collection-content-panel__field-option span:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+
+.use-collection-content-panel__field-check {
+  flex-shrink: 0;
+  color: #1a73e8;
+  font-weight: 600;
+}

@@ -1,0 +1,68 @@
+.repeater-floating-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, -8px);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #c9a0dc;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.repeater-floating-toolbar__btn {
+  width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.repeater-floating-toolbar__btn--text {
+  width: auto;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.repeater-floating-toolbar__btn:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.repeater-floating-toolbar__btn--connect:hover {
+  background: rgba(201, 160, 220, 0.2);
+  color: #6b2d7a;
+}
+
+.repeater-floating-toolbar__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.repeater-floating-toolbar__btn .repeater-floating-toolbar__icon {
+  font-size: 1.125rem;
+}
+
+.repeater-floating-toolbar__icon--connect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.repeater-floating-toolbar__icon--connect svg {
+  display: block;
+}

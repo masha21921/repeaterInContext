@@ -1,0 +1,47 @@
+/* Text component on stage: displays as text, not an input. Edit in settings panel. */
+.text-component {
+  padding: 4px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: box-shadow 0.15s, outline 0.15s;
+  display: inline-block;
+  min-height: 1.5em;
+}
+
+.text-component:hover {
+  outline: 1px dashed rgba(26, 115, 232, 0.4);
+  outline-offset: 2px;
+}
+
+.text-component--selected {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.text-component__content {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #202124;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.text-component__content--editable {
+  outline: none;
+  min-width: 1em;
+  display: inline-block;
+}
+
+.text-component__content--editable:empty::before,
+.text-component__content--editable[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: #80868b;
+}
+
+.stage-section .text-component {
+  background: transparent;
+}

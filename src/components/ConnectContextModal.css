@@ -1,0 +1,236 @@
+.connect-context-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.connect-context-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.connect-context-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0 24px;
+}
+
+.connect-context-modal__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.connect-context-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connect-context-modal__help,
+.connect-context-modal__close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+  color: #5f6368;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.connect-context-modal__help:hover,
+.connect-context-modal__close:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.connect-context-modal__subtitle {
+  margin: 8px 24px 16px;
+  font-size: 0.875rem;
+  color: #5f6368;
+  line-height: 1.4;
+}
+
+.connect-context-modal__search-wrap {
+  margin: 0 24px 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.connect-context-modal__search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1rem;
+  color: #5f6368;
+  pointer-events: none;
+}
+
+.connect-context-modal__search {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  font-size: 0.875rem;
+  color: #202124;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+}
+
+.connect-context-modal__search:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+.connect-context-modal__body {
+  padding: 0 24px 16px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.connect-context-modal__empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #5f6368;
+  line-height: 1.5;
+}
+
+.connect-context-modal__category {
+  margin-bottom: 4px;
+}
+
+.connect-context-modal__category-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #202124;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.connect-context-modal__category-head:hover {
+  color: #1a73e8;
+}
+
+.connect-context-modal__category-arrow {
+  font-size: 0.75rem;
+  color: #5f6368;
+}
+
+.connect-context-modal__category-label {
+  flex: 1;
+}
+
+.connect-context-modal__category-add {
+  font-size: 1.125rem;
+  color: #5f6368;
+}
+
+.connect-context-modal__category-options {
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+
+.connect-context-modal__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: 2px 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.connect-context-modal__option:hover:not(.connect-context-modal__option--disabled) {
+  background: #f8f9fa;
+}
+
+.connect-context-modal__option--selected {
+  background: rgba(26, 115, 232, 0.08);
+}
+
+.connect-context-modal__option--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.connect-context-modal__checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #1a73e8;
+}
+
+.connect-context-modal__option-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #202124;
+}
+
+.connect-context-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #e8eaed;
+}
+
+.connect-context-modal__cancel {
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #5f6368;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.connect-context-modal__cancel:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.connect-context-modal__add {
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  background: #1a73e8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.connect-context-modal__add:hover:not(:disabled) {
+  background: #1557b0;
+}
+
+.connect-context-modal__add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

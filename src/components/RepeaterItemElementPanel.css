@@ -1,0 +1,170 @@
+/* Edit Text panel – toolbar for text inside repeater */
+.edit-text-panel__text-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Connected = bindable property is bound to a collection field; show in accent color (pink) */
+.edit-text-panel__text-row--connected .repeater-item-settings-panel__label,
+.edit-text-panel__text-row--connected .edit-text-panel__text-label {
+  color: #c9a0dc;
+}
+
+.edit-text-panel__text-row--connected .repeater-item-settings-panel__input {
+  border-color: rgba(201, 160, 220, 0.7);
+  color: #c9a0dc;
+}
+
+.edit-text-panel__text-row--connected .repeater-item-settings-panel__input[readonly] {
+  cursor: default;
+  background: rgba(201, 160, 220, 0.08);
+}
+
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn {
+  background: rgba(201, 160, 220, 0.25);
+  border-color: rgba(201, 160, 220, 0.6);
+  color: #c9a0dc;
+}
+
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn .edit-text-panel__connector-icon--curve,
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn .edit-text-panel__connector-icon--curve svg {
+  color: #c9a0dc;
+}
+
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn .edit-text-panel__connector-icon--curve svg {
+  stroke: #c9a0dc !important;
+  fill: none;
+}
+
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn:hover {
+  background: rgba(201, 160, 220, 0.35);
+}
+
+.edit-text-panel__text-row--connected .edit-text-panel__connector-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c9a0dc;
+}
+
+.edit-text-panel__connected-hint {
+  font-weight: 400;
+  opacity: 0.95;
+}
+
+.edit-text-panel__text-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-text-panel__connector-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.edit-text-panel__connector-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.edit-text-panel__connector-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.edit-text-panel__connector-icon--curve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-text-panel__connector-icon--curve svg {
+  display: block;
+}
+
+.edit-text-panel__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #3a3a45;
+}
+
+.edit-text-panel__select {
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.95);
+  background: #3a3a45;
+  border: 1px solid #4a4a55;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.edit-text-panel__select--size {
+  width: 56px;
+}
+
+.edit-text-panel__link {
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.95);
+  background: #3a3a45;
+  border: 1px solid #4a4a55;
+  border-radius: 6px;
+  width: 80px;
+  min-width: 0;
+}
+
+.edit-text-panel__link::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.edit-text-panel__color {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  background: #3a3a45;
+  border: 1px solid #4a4a55;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-text-panel__format,
+.edit-text-panel__align {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.edit-text-panel__format-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-text-panel__format-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.edit-text-panel__format-btn.active {
+  background: rgba(201, 160, 220, 0.3);
+  color: #fff;
+}

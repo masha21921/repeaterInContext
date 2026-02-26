@@ -1,0 +1,41 @@
+.page-settings-panel {
+  padding: 0;
+}
+
+.page-settings-panel__title {
+  margin: 0 0 14px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.page-settings-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.page-settings-panel__label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #5f6368;
+}
+
+.page-settings-panel__select {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  background: #fff;
+  color: #202124;
+  cursor: pointer;
+}
+
+.page-settings-panel__select:hover,
+.page-settings-panel__select:focus {
+  border-color: #1a73e8;
+  outline: none;
+}

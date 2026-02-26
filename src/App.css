@@ -1,0 +1,56 @@
+.app {
+  min-height: 100vh;
+  background: #16161a;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.app-nav {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #2a2a30;
+  text-align: center;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.02em;
+}
+
+.app-subtitle {
+  margin: 0 0 20px 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.app-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.app-tab {
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid #3a3a45;
+  background: #222228;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.app-tab:hover {
+  background: #2a2a32;
+  border-color: #4a4a55;
+}
+
+.app-tab.active {
+  background: #3d5a80;
+  border-color: #4d6a90;
+  color: #fff;
+}
+
+.app-main {
+  padding: 24px 0;
+}

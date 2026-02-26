@@ -1,0 +1,29 @@
+.component-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: box-shadow 0.15s, outline 0.15s;
+}
+
+.component-wrapper--selected {
+  outline: 2px solid #c9a0dc;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #c9a0dc;
+}
+
+.component-wrapper--draggable {
+  cursor: grab;
+}
+
+.component-wrapper--draggable:active {
+  cursor: grabbing;
+}
+
+.component-wrapper:last-child {
+  margin-bottom: 0;
+}
+
+.component-wrapper__content {
+  min-height: 0;
+}

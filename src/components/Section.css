@@ -1,0 +1,257 @@
+/* Section: container on the stage for components – distinct visual (dashed, light) */
+.stage-section {
+  border: 1px dashed #dadce0;
+  border-radius: 10px;
+  margin: 12px 40px 12px 48px;
+  padding: 12px 16px;
+  min-height: 60px;
+  background: #fafafa;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.stage-section {
+  cursor: pointer;
+  transition: box-shadow 0.15s, outline 0.15s;
+}
+
+.stage-section:hover {
+  border-color: rgba(26, 115, 232, 0.35);
+  background: rgba(26, 115, 232, 0.03);
+}
+
+.stage-section--selected {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px #1a73e8;
+}
+
+/* Section name on top – distinct top bar */
+.stage-section__header {
+  margin: -12px -16px 12px -16px;
+  padding: 10px 16px;
+  background: #e8eaed;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-section__ctx {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: #80868b;
+  padding: 2px 6px;
+  background: #e8eaed;
+  border-radius: 4px;
+}
+
+.stage-section__ctx-line {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: #80868b;
+}
+
+.stage-section__connect.ctx-connect-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1565c0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.stage-section__connect.ctx-connect-link:hover {
+  background: rgba(21, 101, 192, 0.12);
+}
+
+.stage-section__connect .ctx-connect-link__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-section__connect .ctx-connect-link__icon svg {
+  display: block;
+}
+
+.stage-section__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5f6368;
+}
+
+.stage-section__content {
+  position: relative;
+  min-height: 44px;
+}
+
+/* Content title – same design as section (name on top bar) */
+.section-content-title-wrap {
+  cursor: pointer;
+  margin: 0 -16px 12px -16px;
+  padding: 10px 16px;
+  background: #e8eaed;
+  border-radius: 6px 6px 0 0;
+  outline: none;
+  transition: box-shadow 0.15s, outline 0.15s;
+}
+
+.section-content-title-wrap:hover {
+  background: #e0e4e8;
+}
+
+.section-content-title-wrap--selected {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #1a73e8;
+}
+
+.section-content-title {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5f6368;
+}
+
+.stage-section--has-content .stage-section__content {
+  min-height: 0;
+}
+
+/* Context wrapper and repeater header inside section – accent for ctx/context instance labels */
+.stage-section .context-wrapper,
+.stage-section .repeater-ctx-wrapper {
+  --repeater-accent: #1a73e8;
+}
+
+/* Repeater header: distinct color from section header (section = #e8eaed grey, repeater = light teal/blue) */
+.stage-section .ctx-repeater {
+  --ctx-repeater-border: #202124;
+  --ctx-repeater-bg: #c8e6f5;
+  --repeater-accent: #1565c0;
+}
+
+.stage-section .ctx-repeater__line {
+  color: #202124;
+}
+
+.stage-section .ctx-repeater--selected {
+  outline: 2px solid #e91e8c;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #e91e8c;
+}
+
+/* Repeater (and other components) inside section – distinct visual */
+.stage-section .repeater {
+  --repeater-bg: #ffffff;
+  --repeater-border: #dadce0;
+  --repeater-accent: #1a73e8;
+  color: #202124;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.stage-section .repeater--canvas .repeater-chip {
+  background: #e8e8e8;
+  border-color: #dadce0;
+  color: #202124;
+}
+
+.stage-section .repeater--canvas .repeater-label {
+  color: #5f6368;
+}
+
+.stage-section__add-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.stage-section__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: #1a73e8;
+  background: rgba(26, 115, 232, 0.06);
+  border: 1px dashed rgba(26, 115, 232, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.stage-section__add.visible {
+  opacity: 1;
+}
+
+.stage-section__add:hover {
+  background: rgba(26, 115, 232, 0.1);
+  border-color: #1a73e8;
+}
+
+.stage-section__add-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  padding: 6px 0;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.stage-section__add-menu-group {
+  padding: 0;
+}
+
+.stage-section__add-menu-group:not(:first-child) {
+  border-top: 1px solid #e8eaed;
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.stage-section__add-menu-group-label {
+  padding: 6px 16px 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f6368;
+}
+
+.stage-section__add-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #202124;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.stage-section__add-menu-item:hover {
+  background: rgba(26, 115, 232, 0.08);
+  color: #1a73e8;
+}

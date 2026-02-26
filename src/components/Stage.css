@@ -1,0 +1,139 @@
+/* Stage: Wix Editor page surface with sections */
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  min-height: 560px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.stage-viewport-label {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) rotate(-180deg);
+  transform-origin: center center;
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #757575;
+  z-index: 2;
+  padding: 12px 10px;
+  background: linear-gradient(to right, #fff 60%, transparent);
+}
+
+.stage-background {
+  position: absolute;
+  inset: 0;
+  background-color: #ffffff;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(0, 0, 0, 0.04) 1px,
+    transparent 0
+  );
+  background-size: 16px 16px;
+  background-position: 0 0;
+  cursor: default;
+}
+
+.stage-background[role="button"] {
+  cursor: pointer;
+}
+
+.stage-background--selected {
+  box-shadow: inset 0 0 0 2px #1a73e8;
+}
+
+.stage-page-header {
+  padding: 10px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5f6368;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.stage-page-header:hover {
+  background: #f0f0f0;
+  color: #202124;
+}
+
+.stage-page-header--selected {
+  color: #1a73e8;
+  background: rgba(26, 115, 232, 0.06);
+  border-bottom-color: #1a73e8;
+}
+
+.stage-page-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-page-header__ctx {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: #80868b;
+  padding: 2px 6px;
+  background: #e8eaed;
+  border-radius: 4px;
+}
+
+.stage-page-header__ctx-line {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: #80868b;
+}
+
+.stage-page-header__connect.ctx-connect-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1565c0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.stage-page-header__connect.ctx-connect-link:hover {
+  background: rgba(21, 101, 192, 0.12);
+}
+
+.stage-page-header__connect .ctx-connect-link__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-page-header__connect .ctx-connect-link__icon svg {
+  display: block;
+}
+
+.stage-page {
+  position: relative;
+  z-index: 1;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}

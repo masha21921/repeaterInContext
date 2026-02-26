@@ -1,0 +1,833 @@
+.repeater-outer {
+  position: relative;
+}
+
+/* Context is a wrapper that wraps the repeater – visual: context attached to repeater */
+.context-wrapper {
+  position: relative;
+  padding-left: 12px;
+  border-left: 3px solid var(--repeater-accent, #1a73e8);
+  border-radius: 0 8px 8px 0;
+}
+
+/* Label and vertical line: "L. REPEATER" (child) next to blue connector (like reference) */
+.repeater-ctx-content::before {
+  content: 'L. REPEATER';
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f6368;
+  margin-bottom: 6px;
+}
+
+/* Technical mode: wrapper that holds ctx-container + repeater – same “attached” visual */
+.repeater-ctx-wrapper {
+  position: relative;
+  border: 1px dashed #dadce0;
+  border-radius: 10px;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+/* Repeater header – distinct visual from section (Repeater. CTX: … CTX instance: … Connect) */
+.ctx-repeater.ctx-repeater--header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 10px 16px;
+  background: var(--ctx-repeater-bg, #c8e6f5);
+  cursor: pointer;
+  transition: outline 0.15s, box-shadow 0.15s;
+  border: none;
+  border-radius: 10px 10px 0 0;
+  margin: 0;
+}
+
+.ctx-repeater--header .ctx-repeater__title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0d47a1;
+  margin: 0;
+}
+
+.ctx-repeater--header .ctx-repeater__line {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1565c0;
+}
+
+.ctx-repeater--selected {
+  outline: 2px solid #e91e8c;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #e91e8c;
+}
+
+.repeater-ctx-content {
+  padding: 12px 16px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* Blank repeater has its own label inside the blue box – hide the outer one */
+.repeater-ctx-content:has(.repeater-blank-layout)::before {
+  display: none;
+}
+
+.ctx-repeater__line {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #202124;
+}
+
+.ctx-connect-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--repeater-accent, #1565c0);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: auto;
+}
+
+.ctx-connect-link__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ctx-connect-link__icon svg {
+  display: block;
+}
+
+.ctx-connect-link:hover {
+  background: rgba(21, 101, 192, 0.12);
+}
+
+.repeater-ctx-wrapper__label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--repeater-accent, #6b9bd1);
+  margin-bottom: 4px;
+}
+
+.repeater-ctx-instance-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--repeater-accent, #6b9bd1);
+  margin-bottom: 6px;
+}
+
+/* Context instance dataset (pagination, filter, sort) in technical mode */
+.repeater-ctx-instance {
+  display: block;
+  margin: 0 0 10px 0;
+  padding: 8px 10px;
+  font-size: 0.65rem;
+  font-family: ui-monospace, monospace;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(107, 155, 209, 0.35);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.repeater-ctx-instance--popover {
+  margin-top: 8px;
+}
+
+/* Repeater – distinct visual (solid border, different from section and ctx-repeater) */
+.repeater {
+  border: 1px solid var(--repeater-border, #333);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--repeater-bg, #1e1e1e);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Canvas layout: component name on top, then content */
+.repeater--canvas {
+  padding: 16px 20px;
+}
+
+.repeater-component-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--repeater-label-color, rgba(255, 255, 255, 0.5));
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Context and context instance always visible near each other */
+.repeater-ctx-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--repeater-label-color, rgba(255, 255, 255, 0.6));
+}
+
+.repeater-ctx-inline__ctx,
+.repeater-ctx-inline__instance {
+  display: inline;
+  color: var(--repeater-accent, #1a73e8);
+}
+
+.repeater-ctx-badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+/* Recipe cards grid */
+.repeater--cards .repeater-component-name {
+  margin-bottom: 16px;
+}
+
+.repeater-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.repeater-item-with-dropped {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.repeater-dropped-elements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.repeater-dropped-text {
+  font-size: 0.875rem;
+  color: #202124;
+  line-height: 1.4;
+}
+
+.repeater-dropped-img {
+  max-width: 80px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.repeater--drop-target {
+  outline: 2px dashed #1a73e8;
+  outline-offset: 4px;
+  background: rgba(26, 115, 232, 0.04);
+  border-radius: 8px;
+}
+
+.recipe-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card__inner-element-wrap {
+  position: relative;
+}
+
+.recipe-card__image-outer {
+  position: relative;
+  aspect-ratio: 4/3;
+  cursor: pointer;
+}
+
+.recipe-card__image-wrap {
+  position: absolute;
+  inset: 0;
+  background: #f0f0f0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.recipe-card__image-selected-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: block;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(26, 115, 232, 0.9);
+  text-align: center;
+  pointer-events: none;
+}
+
+.recipe-card__image-outer.recipe-card__image-wrap--selected {
+  outline: 3px solid #1a73e8;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px #1a73e8;
+  border-radius: 4px;
+}
+
+/* When selected element is connected to a field, use pink instead of blue */
+.recipe-card__image-outer.recipe-card__image-wrap--selected.recipe-card__element--connected {
+  outline-color: #c9a0dc;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px #c9a0dc;
+}
+
+.recipe-card__image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.recipe-card__image-link .recipe-card__image {
+  display: block;
+}
+
+.recipe-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recipe-card__name-wrap {
+  position: relative;
+}
+
+.recipe-card__name {
+  margin: 0;
+  padding: 12px 14px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #202124;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.recipe-card__name-link {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.recipe-card__name--selected,
+.recipe-card__name-wrap--selected .recipe-card__name {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.recipe-card__name-wrap--selected.recipe-card__element--connected .recipe-card__name {
+  outline-color: #c9a0dc;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px #c9a0dc;
+}
+
+.recipe-card__btn-wrap {
+  position: relative;
+  align-self: flex-start;
+}
+
+.recipe-card__btn-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+}
+
+.recipe-card__btn {
+  margin: 12px 14px 14px;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1a73e8;
+  background: transparent;
+  border: 1px solid #1a73e8;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.recipe-card__btn:hover {
+  background: rgba(26, 115, 232, 0.08);
+}
+
+.recipe-card__btn--selected,
+.recipe-card__btn-wrap--selected .recipe-card__btn {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(26, 115, 232, 0.4);
+}
+
+.recipe-card__btn-wrap--selected.recipe-card__element--connected .recipe-card__btn {
+  outline-color: #c9a0dc;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px #c9a0dc;
+}
+
+/* Component name badge on stage when inner element is selected */
+.inner-element-badge {
+  position: absolute;
+  left: 0;
+  top: -26px;
+  z-index: 2;
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: #1a73e8;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Handles on selected inner element */
+.inner-element-handles {
+  position: absolute;
+  inset: -4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.inner-element-handles__dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 1px solid #1a73e8;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.inner-element-handles__dot--tl { top: 0; left: 0; transform: translate(-50%, -50%); }
+.inner-element-handles__dot--tc { top: 0; left: 50%; transform: translate(-50%, -50%); }
+.inner-element-handles__dot--tr { top: 0; right: 0; left: auto; transform: translate(50%, -50%); }
+.inner-element-handles__dot--ml { top: 50%; left: 0; transform: translate(-50%, -50%); }
+.inner-element-handles__dot--mr { top: 50%; right: 0; left: auto; transform: translate(50%, -50%); }
+.inner-element-handles__dot--bl { bottom: 0; left: 0; top: auto; transform: translate(-50%, 50%); }
+.inner-element-handles__dot--bc { bottom: 0; left: 50%; top: auto; transform: translate(-50%, 50%); }
+.inner-element-handles__dot--br { bottom: 0; right: 0; left: auto; top: auto; transform: translate(50%, 50%); }
+
+.recipe-card {
+  position: relative;
+  cursor: pointer;
+  transition: box-shadow 0.15s, outline 0.15s;
+}
+
+.recipe-card--selected {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px #1a73e8;
+}
+
+/* Label when the repeater item (card) is selected – "Item selected" */
+.recipe-card__item-selected-label {
+  position: absolute;
+  left: 0;
+  top: -26px;
+  z-index: 2;
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: #1a73e8;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.repeater-items-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.repeater-chip {
+  display: inline-block;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--repeater-border, rgba(255,255,255,0.15));
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: inherit;
+  cursor: pointer;
+}
+
+.repeater-chip:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.repeater-chip--selected {
+  border-color: var(--repeater-accent, #6b9bd1);
+  box-shadow: 0 0 0 2px rgba(107, 155, 209, 0.35);
+}
+
+.repeater-show-more {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  background: var(--repeater-accent, #1a73e8);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.repeater-show-more:hover {
+  filter: brightness(1.1);
+}
+
+.repeater-label {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Repeater on stage (section): card label color */
+.stage-section .repeater-component-name {
+  --repeater-label-color: #5f6368;
+}
+
+/* Unconfigured: ribbon on top (not blurred), content below is blurred */
+.repeater--unconfigured {
+  padding: 0;
+}
+
+.repeater--unconfigured .repeater-ribbon--on-top {
+  margin: 0;
+}
+
+.repeater-unconfigured__blurred {
+  padding: 0 20px 16px 20px;
+  filter: blur(2px);
+  opacity: 0.92;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.repeater-unconfigured__blurred .repeater-component-name {
+  margin-bottom: 16px;
+}
+
+.repeater-ribbon {
+  padding: 10px 20px;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.repeater-ribbon:hover {
+  background: #1557b0;
+}
+
+.repeater-ribbon__text {
+  display: block;
+}
+
+/* Harmony: ribbon with description + button */
+.repeater-ribbon--with-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  cursor: default;
+}
+
+.repeater-ribbon--with-button:hover {
+  background: #1a73e8;
+}
+
+.repeater-ribbon__description {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.repeater-ribbon__btn {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1a73e8;
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.repeater-ribbon__btn:hover {
+  background: #f0f0f0;
+}
+
+.repeater-unconfigured-placeholder {
+  padding: 24px;
+  text-align: center;
+}
+
+.repeater-unconfigured-placeholder p {
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.repeater-connect-btn {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  background: var(--repeater-accent, #1a73e8);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.repeater-empty {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.repeater-empty-state {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.repeater-empty-state__message {
+  display: block;
+  color: var(--repeater-empty-color, #5f6368);
+  font-size: 0.9rem;
+}
+
+.repeater-context-badge {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--repeater-accent);
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--repeater-border, #333);
+}
+
+.repeater-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.repeater-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--repeater-border, #333);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.repeater-item:last-child {
+  border-bottom: none;
+}
+
+.repeater-item--cms .repeater-item__title { font-weight: 600; }
+.repeater-item--cms .repeater-item__slug { color: #888; font-size: 0.9rem; }
+.repeater-item__status { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
+.repeater-item__status--published { background: #1a3d1a; color: #7fdb7f; }
+.repeater-item__status--draft { background: #3d3d1a; color: #dbdb7f; }
+.repeater-item__meta { margin-left: auto; color: #666; font-size: 0.85rem; }
+
+.repeater-item--seamless .repeater-item__label { font-weight: 500; }
+.repeater-item--seamless .repeater-item__value { color: var(--repeater-accent); }
+
+.repeater-item--ecom .repeater-item__name { font-weight: 600; flex: 1; }
+.repeater-item--ecom .repeater-item__price { color: #7fdb7f; }
+.repeater-item--ecom .repeater-item__sku { color: #888; font-size: 0.85rem; }
+.repeater-item__stock.in-stock { color: #7fdb7f; }
+.repeater-item__stock.out-of-stock { color: #db7f7f; }
+
+.repeater-item--bookends .repeater-item__title { font-weight: 600; }
+.repeater-item--bookends .repeater-item__author { color: #888; }
+.repeater-item--bookends .repeater-item__isbn { font-size: 0.8rem; color: #666; margin-left: auto; }
+
+/* Studio: blank repeater – three grey placeholders, no blue border; header and items don't overlap */
+.repeater--blank .repeater-blank-layout {
+  min-height: 100px;
+  background: #fff;
+  border-radius: 6px;
+}
+
+.repeater-blank-layout__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 10px;
+  min-height: 32px;
+  cursor: pointer;
+}
+.repeater-blank-layout__header:hover {
+  background: rgba(26, 115, 232, 0.06);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.repeater-blank-layout__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f6368;
+}
+
+.repeater-blank-layout__expand {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.repeater-blank-layout__expand:hover {
+  color: #1a73e8;
+}
+
+.repeater-blank-layout__expand svg {
+  display: block;
+}
+
+.repeater-blank-layout__columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  min-height: 72px;
+  padding: 0 12px 12px;
+  box-sizing: border-box;
+}
+
+.repeater-blank-layout__col {
+  min-height: 72px;
+  background: #e8eaed;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.repeater-blank-slot__content {
+  flex: 1;
+  padding: 6px 8px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.repeater-blank-slot__text {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  color: #202124;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.repeater-blank-slot__img-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.repeater-blank-slot__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.repeater-blank-slot__img-placeholder {
+  font-size: 0.65rem;
+  color: #80868b;
+}
+
+.repeater-blank-slot__text[role="button"],
+.repeater-blank-slot__img-wrap[role="button"] {
+  cursor: pointer;
+  outline: none;
+}
+
+.repeater-blank-slot__element--selected.repeater-blank-slot__text,
+.repeater-blank-slot__element--selected.repeater-blank-slot__img-wrap {
+  box-shadow: 0 0 0 2px #1a73e8;
+  border-radius: 2px;
+}
+
+.repeater-blank-layout__col:hover {
+  border-color: #bdc1c6;
+}
+
+.repeater-blank-layout__col--selected {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3);
+  outline: none;
+}
+
+.repeater-blank-layout__col:focus-visible {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
