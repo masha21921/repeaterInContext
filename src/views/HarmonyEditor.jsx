@@ -528,11 +528,12 @@ export function HarmonyEditor() {
           onClose={() => { setConnectorPanelTarget(null); setConnectorPanelSourceContextId(null); }}
           repeaterAssignedContextId={isRepeaterItem ? repeaterContextId : undefined}
           repeaterContextLabel={isRepeaterItem ? repeaterContextLabel : undefined}
-          sourceLabel={hasRealSourceOptions ? undefined : sourceLabel}
+          sourceLabel={sourceLabel}
           sourceOptions={isRepeaterItem ? sourceOptions : undefined}
           selectedSourceContextId={isRepeaterItem ? selectedSourceContextId : undefined}
           onSourceChange={isRepeaterItem ? (id) => setConnectorPanelSourceContextId(id || null) : undefined}
           sourceSelectAriaLabel="Source collection"
+          sourceReadOnly={true}
         />
       );
     }

@@ -312,9 +312,27 @@
 .connect-context-modal__footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 12px;
   padding: 16px 24px 20px;
   border-top: 1px solid #e8eaed;
+}
+
+.connect-context-modal__disconnect {
+  margin-right: auto;
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #5f6368;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.connect-context-modal__disconnect:hover {
+  background: #f1f3f4;
+  color: #d93025;
 }
 
 .connect-context-modal__cancel {

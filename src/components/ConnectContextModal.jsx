@@ -112,9 +112,8 @@ export function ConnectContextModal({
     if (!suggestedContextIdForPreset || !availableContexts?.length) return null;
     const ctx = availableContexts.find((c) => c.id === suggestedContextIdForPreset);
     if (!ctx) return null;
-    if (createdContextIds?.includes(ctx.id)) return null;
     return ctx;
-  }, [suggestedContextIdForPreset, availableContexts, createdContextIds]);
+  }, [suggestedContextIdForPreset, availableContexts]);
 
   const filteredCategories = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -236,7 +235,7 @@ export function ConnectContextModal({
                     Suggested for this design
                   </h3>
                   <p className="connect-context-modal__suggested-hint">
-                    CMS context with relevant topic for this preset.
+                    CMS context with relevant topic for this preset. If you select it, a new CMS collection will be created.
                   </p>
                   <ul className="connect-context-modal__available-list" role="listbox">
                     <li>
@@ -408,6 +407,18 @@ export function ConnectContextModal({
         </div>
 
         <div className="connect-context-modal__footer">
+          {isRepeaterMode && selectedContextId && (
+            <button
+              type="button"
+              className="connect-context-modal__disconnect"
+              onClick={() => {
+                onConnect?.(null, connectTarget);
+                onClose();
+              }}
+            >
+              Disconnect
+            </button>
+          )}
           <button type="button" className="connect-context-modal__cancel" onClick={onClose}>
             Cancel
           </button>

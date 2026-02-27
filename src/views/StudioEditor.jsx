@@ -188,7 +188,9 @@ export function StudioEditor() {
   }, []);
   const closeContextDetails = useCallback(() => setContextDetailsTarget(null), []);
 
-  /** Unique context instance label per context usage. Keys: page-${contextId}, ${sectionId}-${contextId}, ${sectionId}-${comp.id} for repeaters. */
+  /** Unique context instance label per context usage. Keys: page-${contextId}, ${sectionId}-${contextId}, ${sectionId}-${comp.id} for repeaters.
+   * Repeaters with own instance are assigned before section contexts in each section, so connecting a section to a context
+   * already used by a repeater in that section creates a new instance (e.g. repeater "Recipes 1", section "Recipes 2"). */
   const contextInstanceLabelMap = useMemo(() => {
     const map = {};
     const countByContextId = {};
@@ -201,9 +203,6 @@ export function StudioEditor() {
       map[key] = `${label} ${n}`;
     };
     (pageContextIds || []).forEach((contextId) => assign(contextId, `page-${contextId}`));
-    ['section1', 'section2', 'section3'].forEach((sectionId) => {
-      (sectionContextIds[sectionId] || []).forEach((contextId) => assign(contextId, `${sectionId}-${contextId}`));
-    });
     const sectionList = [
       ['section1', section1Components],
       ['section2', section2Components],
@@ -216,11 +215,22 @@ export function StudioEditor() {
         if (comp.type !== 'repeater' || !comp.assignedContextId) return;
         const addedViaAddContext = comp.contextSource === 'add';
         const parentHasIt = !addedViaAddContext && (sectionIds.includes(comp.assignedContextId) || pageIds.includes(comp.assignedContextId));
+        if (!parentHasIt) assign(comp.assignedContextId, `${sectionId}-${comp.id}`);
+      });
+    });
+    sectionList.forEach(([sectionId, comps]) => {
+      const sectionIds = sectionContextIds[sectionId] || [];
+      const pageIds = pageContextIds || [];
+      (sectionContextIds[sectionId] || []).forEach((contextId) => assign(contextId, `${sectionId}-${contextId}`));
+      comps.forEach((comp) => {
+        if (comp.type !== 'repeater' || !comp.assignedContextId) return;
+        const repeaterKey = `${sectionId}-${comp.id}`;
+        if (map[repeaterKey] != null) return;
+        const addedViaAddContext = comp.contextSource === 'add';
+        const parentHasIt = !addedViaAddContext && (sectionIds.includes(comp.assignedContextId) || pageIds.includes(comp.assignedContextId));
         if (parentHasIt) {
           const parentKey = sectionIds.includes(comp.assignedContextId) ? `${sectionId}-${comp.assignedContextId}` : `page-${comp.assignedContextId}`;
-          map[`${sectionId}-${comp.id}`] = map[parentKey] ?? (availableContexts.find((c) => c.id === comp.assignedContextId)?.label ?? comp.assignedContextId);
-        } else {
-          assign(comp.assignedContextId, `${sectionId}-${comp.id}`);
+          map[repeaterKey] = map[parentKey] ?? (availableContexts.find((c) => c.id === comp.assignedContextId)?.label ?? comp.assignedContextId);
         }
       });
     });
@@ -417,7 +427,7 @@ export function StudioEditor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selection, removeComponent]);
 
-  /** contextSource: 'add' = from "Add context to repeater" (new instance); 'parent' = from "Available from parent level" (reuse parent instance). */
+  /** contextSource: 'add' = from "Add context to repeater" (new instance); 'parent' = from "Available from parent level" (reuse parent instance). When contextId is null, repeater goes to blank state. */
   const setComponentContext = useCallback((sectionId, componentId, contextId, contextSource) => {
     const setter = getSetBySection(sectionId);
     setter((prev) =>
@@ -429,6 +439,7 @@ export function StudioEditor() {
               connected: !!contextId,
               itemsConnectTo: contextId ? 'items' : (c.itemsConnectTo ?? 'items'),
               ...(contextId && contextSource != null && { contextSource }),
+              ...(!contextId && c.type === 'repeater' && { preset: 'blank' }),
             }
           : c
       )
@@ -1064,6 +1075,13 @@ export function StudioEditor() {
         : null;
       const ctxSettings = getContextSettings(selectedRepeaterComp?.assignedContextId, selection.sectionId);
       const contextSource = getContextSource(selectedRepeaterComp?.assignedContextId, selection.sectionId);
+      const comp = selectedRepeaterComp;
+      const effectiveContextSettings = ctxSettings ?? (comp?.connected ? {
+        pageLoad: comp.pageLoad ?? 4,
+        filterRules: comp.filterRules ?? [],
+        sortRules: comp.sortRules ?? defaultSortRules,
+        sortSummary: getSortSummary(comp.sortRules ?? defaultSortRules, getSortFieldsForContext(comp?.assignedContextId)),
+      } : null);
       return (
       <RepeaterSettingsPanel
         availableContexts={availableContextsForRepeater}
@@ -1083,7 +1101,7 @@ export function StudioEditor() {
         }}
         loadMoreEnabled={selectedRepeaterComp?.loadMoreEnabled !== false}
         onLoadMoreChange={(enabled) => setRepeaterLoadMore(selection.sectionId, selection.componentId, enabled)}
-        contextSettingsReadOnly={ctxSettings ? { pageLoad: ctxSettings.pageLoad ?? 4, filterRules: ctxSettings.filterRules ?? [], sortRules: ctxSettings.sortRules ?? defaultSortRules, sortSummary: getSortSummary(ctxSettings.sortRules ?? defaultSortRules, getSortFieldsForContext(selectedRepeaterComp?.assignedContextId)) } : null}
+        contextSettingsReadOnly={effectiveContextSettings}
         contextSource={contextSource}
         onOpenContextSettings={(source) => setSelection(source === 'page' ? { type: 'page' } : { type: 'section', sectionId: source })}
         onOpenContextInstanceSettings={() => setContextInstanceModalTarget({ sectionId: selection.sectionId, componentId: selection.componentId })}
@@ -1143,9 +1161,15 @@ export function StudioEditor() {
               : undefined
         }
         onConnect={(contextId, target) => {
-          if (!contextId) return;
           const t = target ?? connectModalTarget;
           if (!t) return;
+          if (contextId == null || contextId === '') {
+            if (t.type === 'component' && t.sectionId && t.componentId) {
+              setComponentContext(t.sectionId, t.componentId, null);
+            }
+            closeConnectModal();
+            return;
+          }
           if (t.type === 'page') {
             addPageContext(contextId);
           } else if (t.type === 'section') {

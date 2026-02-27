@@ -263,6 +263,8 @@ export function UseCollectionContentPanel({
   fallbackContextTypeForLabel = null,
   /** Optional aria-label for the Source select (e.g. "Source collection" in Harmony). */
   sourceSelectAriaLabel = 'Source context',
+  /** When true, Source is shown as read-only text instead of a dropdown (e.g. Harmony). */
+  sourceReadOnly = false,
 }) {
   const [open, setOpen] = useState(false);
   const effectiveContextId = contextId ?? (selectedField ? fallbackContextIdForLabel : null);
@@ -317,7 +319,11 @@ export function UseCollectionContentPanel({
           <div className="use-collection-content-panel__meta">
             <div className="use-collection-content-panel__meta-row">
               <span className="use-collection-content-panel__meta-label">Source</span>
-              {(sourceOptions && sourceOptions.length > 0) && (onSourceChange != null || sourceOptions.some((o) => o.contextId === '')) ? (
+              {sourceReadOnly || !(sourceOptions && sourceOptions.length > 0) || !(onSourceChange != null || sourceOptions.some((o) => o.contextId === '')) ? (
+                <span className="use-collection-content-panel__meta-value">
+                  {sourceLabel ?? (sourceOptions?.find((o) => o.contextId === (selectedSourceContextId ?? ''))?.label) ?? '—'}
+                </span>
+              ) : (
                 <select
                   className="use-collection-content-panel__source-select"
                   value={selectedSourceContextId ?? ''}
@@ -331,8 +337,6 @@ export function UseCollectionContentPanel({
                     </option>
                   ))}
                 </select>
-              ) : (
-                <span className="use-collection-content-panel__meta-value">{sourceLabel ?? '—'}</span>
               )}
             </div>
           </div>
