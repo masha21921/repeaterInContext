@@ -4,20 +4,33 @@ import './Stage.css';
  * Wix Editor Stage — the page where you add components.
  * Contains sections; components (e.g. Repeater) live inside sections.
  * Page can be selected to assign context at page level.
+ * pageContexts: array of { label, instanceLabel } for each attached context (supports multiple).
  */
 export function Stage({
   children,
   className = '',
   isPageSelected,
   onSelectPage,
-  technicalMode,
+  /** Single-context legacy: if provided, used as sole context line. */
   pageContextLabel,
   pageContextInstanceLabel,
+  /** Multi-context: list of { label, instanceLabel } to display (overrides single if length > 0). */
+  pageContexts = [],
   showPageContextLabel = true,
   onOpenPageConnect,
-  /** When false, Connect button is hidden (e.g. when page is already connected). */
+  /** When false, Connect/Replace button is hidden (e.g. in Harmony when page header is hidden). */
   showPageConnectButton = true,
+  /** When true, button shows "Replace" instead of "Connect". */
+  hasPageContext = false,
+  /** When false, the page header (Page + CTX + Connect) is not rendered (e.g. Harmony). */
+  showPageHeader = true,
 }) {
+  const contextsToShow = Array.isArray(pageContexts) && pageContexts.length > 0
+    ? pageContexts
+    : (pageContextLabel != null || pageContextInstanceLabel != null
+      ? [{ label: pageContextLabel ?? '—', instanceLabel: pageContextInstanceLabel ?? '—' }]
+      : []);
+
   return (
     <div className={`stage ${className}`.trim()}>
       <div className="stage-viewport-label">Desktop (Primary)</div>
@@ -30,7 +43,7 @@ export function Stage({
         aria-hidden={!onSelectPage}
       />
       <div className="stage-page">
-        {onSelectPage && (
+        {showPageHeader && onSelectPage && (
           <div
             className={`stage-page-header ${isPageSelected ? 'stage-page-header--selected' : ''}`}
             onClick={(e) => { e.stopPropagation(); onSelectPage(); }}
@@ -40,9 +53,20 @@ export function Stage({
           >
             <span>Page</span>
             {showPageContextLabel && (
-              <span className="stage-page-header__ctx-line">
-                <strong>CTX:</strong> {pageContextLabel ?? '—'}{' '}
-                <strong>CTX instance:</strong> {pageContextInstanceLabel ?? '—'}
+              <span className="stage-page-header__ctx">
+                {contextsToShow.length === 0 ? (
+                  <span className="stage-page-header__ctx-line">
+                    <strong>CTX:</strong> — <strong>CTX instance:</strong> —
+                  </span>
+                ) : (
+                  contextsToShow.map((ctx, i) => (
+                    <span key={i} className="stage-page-header__ctx-line">
+                      <strong>CTX:</strong> {ctx.label ?? '—'}{' '}
+                      <strong>CTX instance:</strong> {ctx.instanceLabel ?? '—'}
+                      {i < contextsToShow.length - 1 ? ', ' : ''}
+                    </span>
+                  ))
+                )}
               </span>
             )}
             {onOpenPageConnect && showPageConnectButton && (
@@ -50,8 +74,8 @@ export function Stage({
                 type="button"
                 className="stage-page-header__connect ctx-connect-link"
                 onClick={(e) => { e.stopPropagation(); e.preventDefault(); onOpenPageConnect(); }}
-                title="Connect to CMS field"
-                aria-label="Connect to CMS field"
+                title={hasPageContext ? 'Settings' : 'Connect to context'}
+                aria-label={hasPageContext ? 'Settings' : 'Connect to context'}
               >
                 <span className="ctx-connect-link__icon" aria-hidden>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -60,7 +84,7 @@ export function Stage({
                     <path d="M9.5 12 C12 12 12 6 14.5 6 C17 6 17 12 14.5 12" />
                   </svg>
                 </span>
-                Connect
+                {hasPageContext ? 'Settings' : 'Connect'}
               </button>
             )}
           </div>

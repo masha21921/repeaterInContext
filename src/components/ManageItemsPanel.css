@@ -176,6 +176,31 @@
   background: #f1f3f4;
 }
 
+.manage-items-panel__sort-summary {
+  margin: 0 0 8px 0;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: #5f6368;
+}
+
+.manage-items-panel__edit-sort-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1a73e8;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.manage-items-panel__edit-sort-btn:hover {
+  background: #e8f0fe;
+}
+
 .manage-items-panel__dropdown-note {
   margin: 0;
   padding: 8px 12px;

@@ -22,7 +22,7 @@
   margin-bottom: 6px;
 }
 
-/* Technical mode: wrapper that holds ctx-container + repeater – same “attached” visual */
+/* Wrapper that holds ctx-container + repeater – same “attached” visual */
 .repeater-ctx-wrapper {
   position: relative;
   border: 1px dashed #dadce0;
@@ -31,40 +31,42 @@
   overflow: hidden;
 }
 
-/* Repeater header – distinct visual from section (Repeater. CTX: … CTX instance: … Connect) */
+/* Repeater container header */
 .ctx-repeater.ctx-repeater--header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
-  padding: 10px 16px;
-  background: var(--ctx-repeater-bg, #c8e6f5);
+  padding: 6px 12px;
+  background: var(--ctx-repeater-bg, #e8f0fe);
   cursor: pointer;
-  transition: outline 0.15s, box-shadow 0.15s;
-  border: none;
-  border-radius: 10px 10px 0 0;
+  transition: outline 0.15s, box-shadow 0.15s, background 0.15s;
+  border: 1px dashed var(--ctx-repeater-border, #a8c7fa);
+  border-radius: 6px 6px 0 0;
   margin: 0;
+  opacity: 0.96;
 }
 
 .ctx-repeater--header .ctx-repeater__title {
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #0d47a1;
+  letter-spacing: 0.06em;
+  color: var(--ctx-repeater-title-color, #1967d2);
   margin: 0;
 }
 
 .ctx-repeater--header .ctx-repeater__line {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  color: #1565c0;
+  color: var(--ctx-repeater-line-color, #5f6368);
 }
 
 .ctx-repeater--selected {
-  outline: 2px solid #e91e8c;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 1px #e91e8c;
+  outline: 1px dashed #1967d2;
+  outline-offset: 1px;
+  box-shadow: none;
+  background: #d2e3fc;
 }
 
 .repeater-ctx-content {
@@ -114,6 +116,17 @@
   background: rgba(21, 101, 192, 0.12);
 }
 
+/* Repeater container header: Connect link in same blue family */
+.ctx-repeater--header .ctx-connect-link {
+  color: #1967d2;
+  font-weight: 500;
+  font-size: 0.7rem;
+}
+
+.ctx-repeater--header .ctx-connect-link:hover {
+  background: rgba(25, 103, 210, 0.12);
+}
+
 .repeater-ctx-wrapper__label {
   display: block;
   font-size: 0.7rem;
@@ -132,7 +145,7 @@
   margin-bottom: 6px;
 }
 
-/* Context instance dataset (pagination, filter, sort) in technical mode */
+/* Context instance dataset (pagination, filter, sort) */
 .repeater-ctx-instance {
   display: block;
   margin: 0 0 10px 0;

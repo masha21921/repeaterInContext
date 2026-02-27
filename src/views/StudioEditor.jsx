@@ -11,13 +11,14 @@ import { ImageSettingsPanel } from '../components/ImageSettingsPanel';
 import { ContextDetailsPanel } from '../components/ContextDetailsPanel';
 import { UseCollectionContentPanel } from '../components/UseCollectionContentPanel';
 import { ContentTitleSettingsPanel } from '../components/ContentTitleSettingsPanel';
+import { SectionSettingsPanel } from '../components/SectionSettingsPanel';
 import { PageSettingsPanel } from '../components/PageSettingsPanel';
 import { ManageItemsPanel } from '../components/ManageItemsPanel';
 import { FilterModal } from '../components/FilterModal';
 import { ConnectContextModal } from '../components/ConnectContextModal';
+import { ContextInstanceSettingsModal } from '../components/ContextInstanceSettingsModal';
 import { EmptySettingsPanel } from '../components/EmptySettingsPanel';
 import { BlankRepeaterSlotPanel } from '../components/BlankRepeaterSlotPanel';
-import { ContainerSettingsPanel } from '../components/ContainerSettingsPanel';
 import { RepeaterItemElementPanel } from '../components/RepeaterItemElementPanel';
 import { applyFilterRules } from '../utils/filterRules';
 import {
@@ -26,7 +27,12 @@ import {
   connectModalPresetIds,
   getUnconfiguredItemsForPreset,
   getDefaultItemBindingsForContext,
+  getFilterFieldsForContext,
+  getSortFieldsForContext,
+  defaultSortRules,
 } from '../data/demoData';
+import { applySortRules, getSortSummary } from '../utils/sortRules';
+import { SortModal } from '../components/SortModal';
 import './Editor.css';
 
 function createComponent(type, preset) {
@@ -45,8 +51,9 @@ function createComponent(type, preset) {
 
 /** Repeater presets shown in Add component under "Repeaters" section (Studio only). */
 const STUDIO_REPEATER_PRESETS = [
-  { type: 'repeater', preset: 'products', label: 'Design preset 1', group: 'Repeaters' },
-  { type: 'repeater', preset: 'team', label: 'Design preset 2', group: 'Repeaters' },
+  { type: 'repeater', preset: 'services', label: 'Design preset 1 (Services)', group: 'Repeaters' },
+  { type: 'repeater', preset: 'books', label: 'Design preset 2 (Books)', group: 'Repeaters' },
+  { type: 'repeater', preset: 'realestate', label: 'Design preset 3 (Real estate properties)', group: 'Repeaters' },
   { type: 'repeater', preset: 'blank', label: 'Blank', group: 'Repeaters' },
 ];
 
@@ -58,7 +65,6 @@ const STUDIO_ADDABLE_COMPONENTS = [
 
 const STUDIO_TABS = [
   { id: 'concept', label: 'Concept 1' },
-  { id: 'contextFirst', label: 'Concept 2' },
 ];
 
 export function StudioEditor() {
@@ -76,16 +82,28 @@ export function StudioEditor() {
     section2: '',
   });
   const [repeaterItemOverrides, setRepeaterItemOverrides] = useState({});
-  const [pageContextId, setPageContextId] = useState(null);
-  const [sectionContextIds, setSectionContextIds] = useState({});
+  /** Page can have multiple contexts; each has its own settings keyed by contextId. */
+  const [pageContextIds, setPageContextIds] = useState([]);
+  const [sectionContextIds, setSectionContextIds] = useState({ section1: [], section2: [], section3: [] });
+  const defaultContextSettings = () => ({ pageLoad: 4, loadMoreEnabled: true, filterRules: [], sortRules: [...defaultSortRules] });
+  /** Page context settings keyed by contextId. */
+  const [pageContextSettings, setPageContextSettings] = useState({});
+  /** Per-section context settings: sectionId -> { [contextId]: settings }. */
+  const [sectionContextSettings, setSectionContextSettings] = useState({
+    section1: {},
+    section2: {},
+    section3: {},
+  });
   const [connectModalTarget, setConnectModalTarget] = useState(null);
   const [manageItemsTarget, setManageItemsTarget] = useState(null);
   const [filterModalTarget, setFilterModalTarget] = useState(null);
+  const [sortModalTarget, setSortModalTarget] = useState(null);
   const [contextDetailsTarget, setContextDetailsTarget] = useState(null);
+  const [contextInstanceModalTarget, setContextInstanceModalTarget] = useState(null);
   const [connectorPanelTarget, setConnectorPanelTarget] = useState(null);
+  const [connectorPanelSourceContextId, setConnectorPanelSourceContextId] = useState(null);
   const [presetUsedIds, setPresetUsedIds] = useState([]);
   const [repeaterSettingsPanelOpen, setRepeaterSettingsPanelOpen] = useState(false);
-  const [technicalMode, setTechnicalMode] = useState(false);
   const settingsAsideRef = useRef(null);
   const scrollToSettingsPanel = useCallback(() => {
     settingsAsideRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
@@ -104,15 +122,53 @@ export function StudioEditor() {
 
   /** Context ids that are connected on the page (page + sections). Repeater and inner elements can access parent context only. */
   const contextIdsOnPage = useMemo(
-    () => [...new Set([pageContextId, sectionContextIds.section1, sectionContextIds.section2, sectionContextIds.section3].filter(Boolean))],
-    [pageContextId, sectionContextIds]
+    () => [
+      ...new Set([
+        ...(pageContextIds || []),
+        ...(sectionContextIds.section1 || []),
+        ...(sectionContextIds.section2 || []),
+        ...(sectionContextIds.section3 || []),
+      ]),
+    ],
+    [pageContextIds, sectionContextIds]
   );
+
+  /** Context ids that are "created" or in use on the page (page + sections + repeater-assigned). When user connects a preset repeater to e.g. Services, that context becomes available in the CMS list for other connect flows. */
+  const contextIdsCreatedOnPage = useMemo(() => {
+    const set = new Set(contextIdsOnPage);
+    [section1Components, section2Components, section3Components].forEach((comps) => {
+      (comps || []).forEach((comp) => {
+        if (comp.type === 'repeater' && comp.assignedContextId) set.add(comp.assignedContextId);
+      });
+    });
+    return [...set];
+  }, [contextIdsOnPage, section1Components, section2Components, section3Components]);
 
   /** Context objects from parents (page/section). Used by container settings to "use context from page" or show "Add context" when empty. */
   const parentContextsForContainer = useMemo(
     () => availableContexts.filter((c) => contextIdsOnPage.includes(c.id)),
     [availableContexts, contextIdsOnPage]
   );
+
+  /** Which scope (page or sectionId) provides this contextId. Prefer repeater's section. */
+  const getContextSource = useCallback((contextId, repeaterSectionId) => {
+    if (!contextId) return null;
+    const sectionIds = repeaterSectionId ? [repeaterSectionId, 'section1', 'section2', 'section3'] : ['section1', 'section2', 'section3'];
+    if (repeaterSectionId && (sectionContextIds[repeaterSectionId] || []).includes(contextId)) return repeaterSectionId;
+    if ((pageContextIds || []).includes(contextId)) return 'page';
+    for (const sid of sectionIds) {
+      if ((sectionContextIds[sid] || []).includes(contextId)) return sid;
+    }
+    return null;
+  }, [pageContextIds, sectionContextIds]);
+
+  /** Pagination, filter, sort for a context instance. From context panel (page/section), keyed by contextId. */
+  const getContextSettings = useCallback((contextId, repeaterSectionId) => {
+    const source = getContextSource(contextId, repeaterSectionId);
+    if (source === 'page') return (pageContextSettings || {})[contextId] ?? null;
+    if (source && sectionContextSettings[source]) return sectionContextSettings[source][contextId] ?? null;
+    return null;
+  }, [getContextSource, pageContextSettings, sectionContextSettings]);
 
   /** For repeater settings: repeater (child) can consume context from container (parent) and upper contexts (page/section). */
   const availableContextsForRepeater = useMemo(() => {
@@ -132,28 +188,92 @@ export function StudioEditor() {
   }, []);
   const closeContextDetails = useCallback(() => setContextDetailsTarget(null), []);
 
-  /** Unique context instance label per repeater: "CollectionName 1", "CollectionName 2", ... */
+  /** Unique context instance label per context usage. Keys: page-${contextId}, ${sectionId}-${contextId}, ${sectionId}-${comp.id} for repeaters. */
   const contextInstanceLabelMap = useMemo(() => {
     const map = {};
     const countByContextId = {};
-    const sections = [
+    const assign = (contextId, key) => {
+      if (!contextId) return;
+      const ctx = availableContexts.find((c) => c.id === contextId);
+      const label = ctx?.label ?? contextId;
+      countByContextId[contextId] = (countByContextId[contextId] ?? 0) + 1;
+      const n = countByContextId[contextId];
+      map[key] = `${label} ${n}`;
+    };
+    (pageContextIds || []).forEach((contextId) => assign(contextId, `page-${contextId}`));
+    ['section1', 'section2', 'section3'].forEach((sectionId) => {
+      (sectionContextIds[sectionId] || []).forEach((contextId) => assign(contextId, `${sectionId}-${contextId}`));
+    });
+    const sectionList = [
       ['section1', section1Components],
       ['section2', section2Components],
       ['section3', section3Components],
     ];
-    sections.forEach(([sectionId, comps]) => {
+    sectionList.forEach(([sectionId, comps]) => {
+      const sectionIds = sectionContextIds[sectionId] || [];
+      const pageIds = pageContextIds || [];
       comps.forEach((comp) => {
-        if (comp.type === 'repeater' && comp.assignedContextId) {
-          const ctx = availableContexts.find((c) => c.id === comp.assignedContextId);
-          const label = ctx?.label ?? comp.assignedContextId;
-          countByContextId[comp.assignedContextId] = (countByContextId[comp.assignedContextId] ?? 0) + 1;
-          const n = countByContextId[comp.assignedContextId];
-          map[`${sectionId}-${comp.id}`] = `${label} ${n}`;
+        if (comp.type !== 'repeater' || !comp.assignedContextId) return;
+        const addedViaAddContext = comp.contextSource === 'add';
+        const parentHasIt = !addedViaAddContext && (sectionIds.includes(comp.assignedContextId) || pageIds.includes(comp.assignedContextId));
+        if (parentHasIt) {
+          const parentKey = sectionIds.includes(comp.assignedContextId) ? `${sectionId}-${comp.assignedContextId}` : `page-${comp.assignedContextId}`;
+          map[`${sectionId}-${comp.id}`] = map[parentKey] ?? (availableContexts.find((c) => c.id === comp.assignedContextId)?.label ?? comp.assignedContextId);
+        } else {
+          assign(comp.assignedContextId, `${sectionId}-${comp.id}`);
         }
       });
     });
     return map;
-  }, [section1Components, section2Components, section3Components, availableContexts]);
+  }, [pageContextIds, sectionContextIds, section1Components, section2Components, section3Components, availableContexts]);
+
+  /** For repeater Select context modal: parent contexts with instance labels, level, and source (one entry per scope-context pair). */
+  const repeaterSelectContextList = useMemo(() => {
+    const levelLabel = (key) => {
+      if (key === 'page') return 'Page';
+      if (key === 'section1') return 'Section 1';
+      if (key === 'section2') return 'Section 2';
+      if (key === 'section3') return 'Section 3';
+      return key ?? '—';
+    };
+    const list = [];
+    (pageContextIds || []).forEach((contextId) => {
+      const ctx = availableContexts.find((c) => c.id === contextId);
+      list.push({
+        contextId,
+        label: ctx?.label ?? contextId,
+        instanceLabel: contextInstanceLabelMap[`page-${contextId}`] ?? ctx?.label ?? contextId,
+        source: ctx?.source ?? null,
+        level: 'Page',
+      });
+    });
+    ['section1', 'section2', 'section3'].forEach((sectionId) => {
+      (sectionContextIds[sectionId] || []).forEach((contextId) => {
+        const ctx = availableContexts.find((c) => c.id === contextId);
+        list.push({
+          contextId,
+          label: ctx?.label ?? contextId,
+          instanceLabel: contextInstanceLabelMap[`${sectionId}-${contextId}`] ?? ctx?.label ?? contextId,
+          source: ctx?.source ?? null,
+          level: levelLabel(sectionId),
+        });
+      });
+    });
+    return list;
+  }, [pageContextIds, sectionContextIds, availableContexts, contextInstanceLabelMap]);
+
+  /** For repeater Connect modal: only page + the section where the repeater lives count as parent. Other sections are not parent. */
+  const parentContextsForRepeaterModal = useMemo(() => {
+    if (connectModalTarget?.type !== 'component' || !connectModalTarget.sectionId) return repeaterSelectContextList;
+    const sectionLevelLabel =
+      connectModalTarget.sectionId === 'section1' ? 'Section 1'
+        : connectModalTarget.sectionId === 'section2' ? 'Section 2'
+        : connectModalTarget.sectionId === 'section3' ? 'Section 3'
+        : null;
+    return repeaterSelectContextList.filter(
+      (entry) => entry.level === 'Page' || entry.level === sectionLevelLabel
+    );
+  }, [repeaterSelectContextList, connectModalTarget?.type, connectModalTarget?.sectionId]);
 
   const getSetBySection = useCallback((sectionId) => {
     switch (sectionId) {
@@ -297,7 +417,8 @@ export function StudioEditor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selection, removeComponent]);
 
-  const setComponentContext = useCallback((sectionId, componentId, contextId) => {
+  /** contextSource: 'add' = from "Add context to repeater" (new instance); 'parent' = from "Available from parent level" (reuse parent instance). */
+  const setComponentContext = useCallback((sectionId, componentId, contextId, contextSource) => {
     const setter = getSetBySection(sectionId);
     setter((prev) =>
       prev.map((c) =>
@@ -306,19 +427,11 @@ export function StudioEditor() {
               ...c,
               assignedContextId: contextId || null,
               connected: !!contextId,
-              // Reset context instance to defaults when context changes
-              filterRules: [],
-              sortOption: 'default',
+              itemsConnectTo: contextId ? 'items' : (c.itemsConnectTo ?? 'items'),
+              ...(contextId && contextSource != null && { contextSource }),
             }
           : c
       )
-    );
-  }, [getSetBySection]);
-
-  const setRepeaterSort = useCallback((sectionId, componentId, sortOption) => {
-    const setter = getSetBySection(sectionId);
-    setter((prev) =>
-      prev.map((c) => (c.id === componentId ? { ...c, sortOption } : c))
     );
   }, [getSetBySection]);
 
@@ -333,6 +446,13 @@ export function StudioEditor() {
     const setter = getSetBySection(sectionId);
     setter((prev) =>
       prev.map((c) => (c.id === componentId ? { ...c, filterRules: rules ?? [] } : c))
+    );
+  }, [getSetBySection]);
+
+  const setRepeaterSortRules = useCallback((sectionId, componentId, rules) => {
+    const setter = getSetBySection(sectionId);
+    setter((prev) =>
+      prev.map((c) => (c.id === componentId ? { ...c, sortRules: rules ?? [] } : c))
     );
   }, [getSetBySection]);
 
@@ -368,16 +488,71 @@ export function StudioEditor() {
   const updateSectionContentTitle = useCallback((sectionId, contentTitle) => {
     setSectionContentTitles((prev) => ({ ...prev, [sectionId]: contentTitle }));
   }, []);
-  const updatePageContext = useCallback((contextId) => setPageContextId(contextId || null), []);
-  const updateSectionContext = useCallback((sectionId, contextId) => {
-    setSectionContextIds((prev) => ({ ...prev, [sectionId]: contextId || null }));
+  const addPageContext = useCallback((contextId) => {
+    if (!contextId) return;
+    setPageContextIds((prev) => (prev.includes(contextId) ? prev : [...prev, contextId]));
+    setPageContextSettings((prev) => ({
+      ...prev,
+      [contextId]: prev[contextId] ?? defaultContextSettings(),
+    }));
+  }, []);
+  const removePageContext = useCallback((contextId) => {
+    setPageContextIds((prev) => prev.filter((id) => id !== contextId));
+    setPageContextSettings((prev) => {
+      const next = { ...prev };
+      delete next[contextId];
+      return next;
+    });
+  }, []);
+  const addSectionContext = useCallback((sectionId, contextId) => {
+    if (!contextId) return;
+    setSectionContextIds((prev) => ({
+      ...prev,
+      [sectionId]: (prev[sectionId] || []).includes(contextId) ? prev[sectionId] : [...(prev[sectionId] || []), contextId],
+    }));
+    setSectionContextSettings((prev) => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        [contextId]: (prev[sectionId] || {})[contextId] ?? defaultContextSettings(),
+      },
+    }));
+  }, []);
+  const removeSectionContext = useCallback((sectionId, contextId) => {
+    setSectionContextIds((prev) => ({
+      ...prev,
+      [sectionId]: (prev[sectionId] || []).filter((id) => id !== contextId),
+    }));
+    setSectionContextSettings((prev) => {
+      const next = { ...prev, [sectionId]: { ...prev[sectionId] } };
+      delete next[sectionId][contextId];
+      return next;
+    });
+  }, []);
+  const updatePageContextSettings = useCallback((contextId, patch) => {
+    setPageContextSettings((prev) => ({
+      ...prev,
+      [contextId]: { ...defaultContextSettings(), ...prev[contextId], ...patch },
+    }));
+  }, []);
+  const updateSectionContextSettings = useCallback((sectionId, contextId, patch) => {
+    setSectionContextSettings((prev) => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        [contextId]: { ...defaultContextSettings(), ...(prev[sectionId] || {})[contextId], ...patch },
+      },
+    }));
   }, []);
   const openManageItems = useCallback((sectionId, componentId) => {
     setManageItemsTarget({ sectionId, componentId });
   }, []);
   const closeManageItems = useCallback(() => setManageItemsTarget(null), []);
   const openFilterModal = useCallback((sectionId, componentId) => {
-    setFilterModalTarget({ sectionId, componentId });
+    setFilterModalTarget({ type: 'component', sectionId, componentId });
+  }, []);
+  const openFilterModalForContext = useCallback((source, contextId) => {
+    setFilterModalTarget({ type: 'context', source, contextId });
   }, []);
   const closeFilterModal = useCallback(() => setFilterModalTarget(null), []);
 
@@ -404,7 +579,13 @@ export function StudioEditor() {
     setRepeaterItemOverrides((prev) => {
       const next = { ...prev };
       (ctx?.items ?? []).forEach((item) => {
-        next[item.id] = { ...defaults, ...(prev[item.id] || {}) };
+        const existing = prev[item.id] || {};
+        const merged = {};
+        Object.keys(defaults).forEach((key) => {
+          const current = existing[key];
+          merged[key] = (current != null && current !== '') ? current : defaults[key];
+        });
+        next[item.id] = { ...existing, ...merged };
       });
       return next;
     });
@@ -427,23 +608,33 @@ export function StudioEditor() {
     setRepeaterItemOverrides((prev) => ({ ...prev, [itemId]: { ...prev[itemId], ...updated } }));
   }, []);
 
-  /** Apply a binding (boundField, boundFieldImage, etc.) to all items in the repeater's context. */
-  const updateRepeaterItemBindingForAll = useCallback((sectionId, componentId, fieldKey, value) => {
+  /** Apply a binding (boundField, boundFieldImage, etc.) to all items. When valueOverride is set (e.g. source is not repeater's context), all items display that same value. */
+  const updateRepeaterItemBindingForAll = useCallback((sectionId, componentId, fieldKey, value, options = null) => {
     const comp = getComponentsBySection(sectionId)?.find((c) => c.id === componentId);
     const contextId = comp?.assignedContextId;
     const ctx = contextId ? getContextById(contextId) : null;
-    const itemIds = (ctx?.items ?? []).map((i) => i.id);
+    let itemIds = (ctx?.items ?? []).map((i) => i.id);
+    if (itemIds.length === 0) {
+      let unconfiguredItems = getUnconfiguredItemsForPreset(comp?.preset) ?? unconfiguredRepeaterItems;
+      if (!unconfiguredItems?.length && comp?.preset !== 'blank') unconfiguredItems = unconfiguredRepeaterItems;
+      itemIds = (unconfiguredItems ?? []).map((i) => i.id);
+    }
     if (itemIds.length === 0) return;
+    const valueOverride = options?.valueOverride;
     setRepeaterItemOverrides((prev) => {
       const next = { ...prev };
       itemIds.forEach((id) => {
-        next[id] = { ...(next[id] || {}), [fieldKey]: value || undefined };
+        const patch = { ...(next[id] || {}), [fieldKey]: value || undefined };
+        if (fieldKey === 'boundField') {
+          patch.boundFieldValueOverride = valueOverride !== undefined ? (valueOverride != null ? String(valueOverride) : '') : undefined;
+        }
+        next[id] = patch;
       });
       return next;
     });
   }, [getComponentsBySection, getContextById]);
 
-  const applyFilterAndSort = useCallback((rawItems, filterQuery, sortOption, filterRules) => {
+  const applyFilterAndSort = useCallback((rawItems, filterQuery, sortRules, filterRules) => {
     let list = rawItems;
     if (filterRules?.length) {
       list = applyFilterRules(list, filterRules);
@@ -451,26 +642,38 @@ export function StudioEditor() {
       const q = filterQuery.trim().toLowerCase();
       list = list.filter((i) => (i.title ?? i.name ?? '').toLowerCase().includes(q));
     }
-    list = [...list];
-    if (sortOption === 'name') list.sort((a, b) => (a.title ?? a.name ?? '').localeCompare(b.title ?? b.name ?? ''));
-    if (sortOption === 'nameDesc') list.sort((a, b) => (b.title ?? b.name ?? '').localeCompare(a.title ?? a.name ?? ''));
+    list = applySortRules(list, sortRules ?? []);
     return list;
   }, []);
 
   const renderComponent = useCallback((comp, sectionId) => {
     if (comp.type === 'repeater') {
       const ctx = comp.assignedContextId ? getContextById(comp.assignedContextId) : null;
+      const ctxSettings = getContextSettings(comp.assignedContextId, sectionId);
+      const pageSize = ctxSettings?.pageLoad ?? comp.pageLoad ?? 4;
+      const loadMoreOn = comp.loadMoreEnabled !== undefined ? comp.loadMoreEnabled : (ctxSettings?.loadMoreEnabled !== false);
+      const filterRules = ctxSettings?.filterRules ?? comp.filterRules ?? [];
+      const rawSortRules = ctxSettings?.sortRules ?? comp.sortRules ?? defaultSortRules;
+      const sortRules = (rawSortRules?.length ? rawSortRules : null) ?? defaultSortRules;
       const rawItems = comp.connected && ctx
         ? itemsForContext(comp.assignedContextId)
-        : getUnconfiguredItemsForPreset(comp.preset) ?? unconfiguredRepeaterItems;
-      const items = comp.connected && ctx ? applyFilterAndSort(rawItems, comp.filterQuery, comp.sortOption, comp.filterRules) : rawItems;
+        : (() => {
+            let list = getUnconfiguredItemsForPreset(comp.preset) ?? unconfiguredRepeaterItems;
+            if (!list?.length && comp.preset !== 'blank') list = unconfiguredRepeaterItems;
+            return (list ?? []).map((i) => ({ ...i, ...repeaterItemOverrides[i.id] }));
+          })();
+      const items = comp.connected && ctx ? applyFilterAndSort(rawItems, comp.filterQuery, sortRules, filterRules) : rawItems;
       const contextProp = ctx ? { type: ctx.type, label: ctx.label } : { type: 'default', label: '' };
+      const firstItemId = rawItems[0]?.id;
+      const firstItemOverrides = firstItemId ? repeaterItemOverrides[firstItemId] : null;
+      const repeaterKey = `repeater-${sectionId}-${comp.id}-${firstItemOverrides?.boundField ?? ''}-${firstItemOverrides?.boundFieldValueOverride ?? ''}`;
       return (
         <Repeater
+          key={repeaterKey}
           context={contextProp}
           items={items}
-          pageSize={comp.pageLoad ?? 4}
-          showLoadMoreButton={comp.loadMoreEnabled !== false}
+          pageSize={pageSize}
+          showLoadMoreButton={loadMoreOn}
           connected={comp.connected ?? false}
           onConnect={() => openConnectModal(sectionId, comp.id)}
           selectedItemId={selection?.type === 'repeaterItem' && selection.sectionId === sectionId && selection.componentId === comp.id ? selection.itemId : null}
@@ -483,20 +686,30 @@ export function StudioEditor() {
           contextLabel={ctx?.label ?? '—'}
           contextInstanceLabel={contextInstanceLabelMap[`${sectionId}-${comp.id}`] ?? '—'}
           contextInstance={{
-            pagination: { pageSize: comp.pageLoad ?? 4 },
-            filter: comp.filterRules ?? [],
-            sort: comp.sortOption ?? 'default',
+            pagination: { pageSize },
+            filter: filterRules,
+            sort: sortRules,
           }}
-          hasActiveFilter={(comp.filterRules?.length ?? 0) > 0}
-          technicalMode={technicalMode}
-          exposeContext={technicalMode}
-          requireContext={studioTab === 'contextFirst'}
-          unconfiguredDesignOnly={true}
+          hasActiveFilter={(filterRules?.length ?? 0) > 0}
+          usesParentContext={
+            comp.assignedContextId != null &&
+            (((sectionContextIds[sectionId] || []).includes(comp.assignedContextId) &&
+              contextInstanceLabelMap[`${sectionId}-${comp.id}`] === contextInstanceLabelMap[`${sectionId}-${comp.assignedContextId}`]) ||
+              ((pageContextIds || []).includes(comp.assignedContextId) &&
+                contextInstanceLabelMap[`${sectionId}-${comp.id}`] === contextInstanceLabelMap[`page-${comp.assignedContextId}`]))
+          }
+          requireContext={false}
+          unconfiguredDesignOnly={!comp.preset || comp.preset === 'blank'}
+          unconfiguredRibbonDescription={comp.preset && comp.preset !== 'blank' ? 'First select the context.' : undefined}
+          unconfiguredRibbonButtonLabel={comp.preset && comp.preset !== 'blank' ? 'Select context' : undefined}
           onOpenContextDetails={() => openContextDetails(sectionId, comp.id)}
           isRepeaterSelected={selection?.type === 'repeater' && selection?.sectionId === sectionId && selection?.componentId === comp.id}
           onSelectRepeater={() => selectRepeater(sectionId, comp.id)}
           onSelectInnerRepeater={() => selectComponent(sectionId, comp.id)}
           preset={comp.preset}
+          presetContextLabel={
+            comp.preset === 'services' ? 'Services' : comp.preset === 'books' ? 'Books' : comp.preset === 'realestate' ? 'Real estate properties' : undefined
+          }
           droppedElements={comp.droppedElements}
           onDropElement={(payload) => addDroppedElementToRepeater(sectionId, comp.id, payload)}
           slotComponents={comp.slotComponents ?? defaultBlankSlotComponents()}
@@ -544,17 +757,22 @@ export function StudioEditor() {
       );
     }
     return null;
-  }, [getContextById, itemsForContext, applyFilterAndSort, selection, studioTab, technicalMode, selectRepeaterItem, selectRepeater, selectBlankSlotElement, openManageItems, openRepeaterSettings, openConnectModal, openContextDetails, updateTextContent, updateImageContent, addDroppedElementToRepeater, scrollToSettingsPanel]);
+  }, [getContextById, itemsForContext, applyFilterAndSort, selection, studioTab, selectRepeaterItem, selectRepeater, selectBlankSlotElement, openManageItems, openRepeaterSettings, openConnectModal, openContextDetails, updateTextContent, updateImageContent, addDroppedElementToRepeater, scrollToSettingsPanel, repeaterItemOverrides]);
 
   function renderSettingsPanel() {
     if (contextDetailsTarget) {
       const comp = getComponentsBySection(contextDetailsTarget.sectionId)?.find((c) => c.id === contextDetailsTarget.componentId);
       const ctx = comp?.assignedContextId ? getContextById(comp.assignedContextId) : null;
+      const ctxSettings = getContextSettings(comp?.assignedContextId, contextDetailsTarget.sectionId);
       const contextInstanceLabel = contextInstanceLabelMap[`${contextDetailsTarget.sectionId}-${contextDetailsTarget.componentId}`];
+      const pagination = ctxSettings ? { pageSize: ctxSettings.pageLoad ?? 4 } : null;
+      const filter = ctxSettings?.filterRules ?? comp?.filterRules ?? [];
+      const sortRules = ctxSettings?.sortRules ?? comp?.sortRules ?? defaultSortRules;
+      const sortSummary = getSortSummary(sortRules, getSortFieldsForContext(comp?.assignedContextId));
       return (
         <ContextDetailsPanel
           connected={comp?.connected ?? false}
-          contextInstance={comp?.connected ? { pagination: { pageSize: comp.pageLoad ?? 4 }, filter: comp.filterRules ?? [], sort: comp.sortOption ?? 'default' } : null}
+          contextInstance={comp?.connected ? { pagination, filter, sortRules, sortSummary } : null}
           contextLabel={ctx?.label}
           contextInstanceLabel={contextInstanceLabel}
           onClose={closeContextDetails}
@@ -566,27 +784,81 @@ export function StudioEditor() {
       const bindProperty = connectorPanelTarget.bindProperty ?? 'text';
       const fieldKey = fieldKeyByBindProperty(bindProperty);
       const isRepeaterItem = connectorPanelTarget.itemId != null;
-      if (isRepeaterItem && (!comp?.assignedContextId || !comp?.connected)) {
-        return (
-          <EmptySettingsPanel
-            title="Connect to CMS field"
-            message="There is no context to connect to. Connect the container to a collection in the container settings first."
-            onClose={() => setConnectorPanelTarget(null)}
-          />
-        );
-      }
-      const ctx = isRepeaterItem && comp?.assignedContextId
-        ? getContextById(comp.assignedContextId)
-        : (connectorPanelTarget.sectionId && (sectionContextIds[connectorPanelTarget.sectionId] || pageContextId))
-          ? getContextById(sectionContextIds[connectorPanelTarget.sectionId] || pageContextId)
-          : null;
-      const item = isRepeaterItem && selection?.type === 'repeaterItem' && selection.sectionId === connectorPanelTarget.sectionId && selection.componentId === connectorPanelTarget.componentId && selection.itemId === connectorPanelTarget.itemId
-        ? selectedRepeaterItem
+      const sectionId = connectorPanelTarget.sectionId;
+      const sectionCtxIds = sectionId ? (sectionContextIds[sectionId] || []) : [];
+      const pageCtxIds = pageContextIds || [];
+      const parentContextId = sectionId && (sectionCtxIds.length > 0 || pageCtxIds.length > 0)
+        ? (sectionCtxIds[0] ?? pageCtxIds[0])
         : null;
-      const selectedField = isRepeaterItem ? (item?.[fieldKey] ?? '') : (comp?.[fieldKey] ?? '');
+      const repeaterContextId = isRepeaterItem ? (comp?.assignedContextId ?? null) : null;
+      const repeaterContextLabel = repeaterContextId ? getContextById(repeaterContextId)?.label : null;
+      const sourceOptions = isRepeaterItem
+        ? (() => {
+            const seen = new Set();
+            const list = [];
+            if (repeaterContextId) {
+              const rCtx = getContextById(repeaterContextId);
+              list.push({ contextId: repeaterContextId, label: `Repeater context (${rCtx?.label ?? repeaterContextId})` });
+              seen.add(repeaterContextId);
+            }
+            sectionCtxIds.forEach((cid) => {
+              if (!seen.has(cid)) {
+                const sCtx = getContextById(cid);
+                list.push({ contextId: cid, label: `Section context (${sCtx?.label ?? cid})` });
+                seen.add(cid);
+              }
+            });
+            pageCtxIds.forEach((cid) => {
+              if (!seen.has(cid)) {
+                const pCtx = getContextById(cid);
+                list.push({ contextId: cid, label: `Page context (${pCtx?.label ?? cid})` });
+                seen.add(cid);
+              }
+            });
+            return list.length > 0 ? [{ contextId: '', label: 'Select source' }, ...list] : [{ contextId: '', label: 'No context available' }];
+          })()
+        : null;
+      const selectedSourceContextId = connectorPanelSourceContextId ?? (isRepeaterItem && repeaterContextId ? repeaterContextId : '');
+      const ctx = selectedSourceContextId ? getContextById(selectedSourceContextId) : null;
+      const sourceLabel = ctx
+        ? (selectedSourceContextId === repeaterContextId
+          ? `Repeater context (${ctx.label})`
+          : sectionCtxIds.includes(selectedSourceContextId)
+            ? `Section context (${ctx.label})`
+            : `Page context (${ctx.label})`)
+        : '—';
+      const repeaterItemsForBinding = isRepeaterItem
+        ? (repeaterContextId
+            ? itemsForContext(repeaterContextId)
+            : (() => {
+                let list = comp ? (getUnconfiguredItemsForPreset(comp.preset) ?? unconfiguredRepeaterItems) : [];
+                if (!list?.length && comp?.preset !== 'blank') list = unconfiguredRepeaterItems;
+                return (list ?? []).map((i) => ({ ...i, ...repeaterItemOverrides[i.id] }));
+              })())
+        : [];
+      const item = isRepeaterItem && selection?.type === 'repeaterItem' && selection.sectionId === connectorPanelTarget.sectionId && selection.componentId === connectorPanelTarget.componentId && selection.itemId === connectorPanelTarget.itemId
+        ? (repeaterItemsForBinding.find((i) => i.id === selection.itemId) ?? selectedRepeaterItem)
+        : null;
+      const bindingItem = item ?? repeaterItemsForBinding[0];
+      const selectedField = isRepeaterItem ? (bindingItem?.[fieldKey] ?? '') : (comp?.[fieldKey] ?? '');
       const onSelectField = isRepeaterItem
-        ? (value) => updateRepeaterItemBindingForAll(connectorPanelTarget.sectionId, connectorPanelTarget.componentId, fieldKey, value)
+        ? (value) => {
+            const sourceCtx = selectedSourceContextId ? getContextById(selectedSourceContextId) : null;
+            const valueOverride =
+              selectedSourceContextId && selectedSourceContextId !== repeaterContextId && sourceCtx?.items?.[0]
+                ? sourceCtx.items[0][value]
+                : undefined;
+            updateRepeaterItemBindingForAll(
+              connectorPanelTarget.sectionId,
+              connectorPanelTarget.componentId,
+              fieldKey,
+              value,
+              valueOverride !== undefined ? { valueOverride: valueOverride != null ? String(valueOverride) : '' } : undefined
+            );
+          }
         : (value) => updateComponentBinding(connectorPanelTarget.sectionId, connectorPanelTarget.componentId, bindProperty, value);
+      const hasRealSourceOptions = sourceOptions?.length > 0 && sourceOptions.some((o) => o.contextId !== '');
+      const repeaterCtx = isRepeaterItem && repeaterContextId ? getContextById(repeaterContextId) : null;
       return (
         <UseCollectionContentPanel
           collectionLabel={ctx?.label ?? 'Collection'}
@@ -595,41 +867,65 @@ export function StudioEditor() {
           bindProperty={bindProperty}
           selectedField={selectedField}
           onSelectField={onSelectField}
-          onClose={() => setConnectorPanelTarget(null)}
-        />
-      );
-    }
-    if (selection?.type === 'repeater' && selectedRepeaterComp?.type === 'repeater') {
-      const assignedCtx = selectedRepeaterComp?.assignedContextId
-        ? getContextById(selectedRepeaterComp.assignedContextId)
-        : null;
-      return (
-        <ContainerSettingsPanel
-          parentContexts={parentContextsForContainer}
-          assignedContextId={selectedRepeaterComp?.assignedContextId ?? null}
-          onSelectContext={(contextId) => {
-            setComponentContext(selection.sectionId, selection.componentId, contextId);
-            applyDefaultBindingsForContext(contextId);
-          }}
-          onOpenConnectModal={() => setConnectModalTarget({ sectionId: selection.sectionId, componentId: selection.componentId, type: 'component' })}
-          onClose={() => setSelection(null)}
-          contextLabel={assignedCtx?.label ?? ''}
-          hasContext={selectedRepeaterComp?.connected ?? false}
+          onClose={() => { setConnectorPanelTarget(null); setConnectorPanelSourceContextId(null); }}
+          repeaterAssignedContextId={isRepeaterItem ? repeaterContextId : undefined}
+          repeaterContextLabel={isRepeaterItem ? repeaterContextLabel : undefined}
+          sourceLabel={hasRealSourceOptions ? undefined : sourceLabel}
+          sourceOptions={isRepeaterItem ? sourceOptions : undefined}
+          selectedSourceContextId={isRepeaterItem ? selectedSourceContextId : undefined}
+          onSourceChange={isRepeaterItem ? (id) => setConnectorPanelSourceContextId(id || null) : undefined}
+          fallbackContextIdForLabel={isRepeaterItem ? repeaterContextId : undefined}
+          fallbackContextTypeForLabel={isRepeaterItem ? (repeaterCtx?.type ?? null) : undefined}
         />
       );
     }
     if (!selection) return <EmptySettingsPanel />;
     if (selection.type === 'page') {
+      const attachedContexts = (pageContextIds || []).map((contextId) => {
+        const ctx = availableContexts.find((c) => c.id === contextId);
+        const settings = (pageContextSettings || {})[contextId] ?? defaultContextSettings();
+        return {
+          contextId,
+          label: ctx?.label ?? '—',
+          instanceLabel: contextInstanceLabelMap[`page-${contextId}`] ?? '—',
+          settings,
+          sortSummary: getSortSummary(settings.sortRules ?? defaultSortRules, getSortFieldsForContext(contextId)),
+        };
+      });
       return (
         <PageSettingsPanel
-          availableContexts={availableContexts}
-          selectedContextId={pageContextId}
-          onSelectContext={updatePageContext}
+          attachedContexts={attachedContexts}
+          onOpenConnectModal={openPageConnectModal}
+          onClose={() => setSelection(null)}
+          onOpenContextInstanceSettings={(contextId) => setContextInstanceModalTarget({ type: 'page', contextId })}
+          onDisconnectContext={removePageContext}
         />
       );
     }
     if (selection.type === 'section') {
-      return <EmptySettingsPanel />;
+      const sectionId = selection.sectionId;
+      const ids = sectionContextIds[sectionId] || [];
+      const attachedContexts = ids.map((contextId) => {
+        const ctx = availableContexts.find((c) => c.id === contextId);
+        const settings = (sectionContextSettings[sectionId] || {})[contextId] ?? defaultContextSettings();
+        return {
+          contextId,
+          label: ctx?.label ?? '—',
+          instanceLabel: contextInstanceLabelMap[`${sectionId}-${contextId}`] ?? '—',
+          settings,
+          sortSummary: getSortSummary(settings.sortRules ?? defaultSortRules, getSortFieldsForContext(contextId)),
+        };
+      });
+      return (
+        <SectionSettingsPanel
+          sectionId={sectionId}
+          attachedContexts={attachedContexts}
+          onOpenConnectModal={() => openSectionConnectModal(sectionId)}
+          onClose={() => setSelection(null)}
+          onOpenContextInstanceSettings={(contextId) => setContextInstanceModalTarget({ type: 'section', sectionId, contextId })}
+          onDisconnectContext={(contextId) => removeSectionContext(sectionId, contextId)}
+        />
+      );
     }
     if (selection.type === 'contentTitle') {
       return (
@@ -764,9 +1060,11 @@ export function StudioEditor() {
     }
     if ((selection.type === 'component' || selection.type === 'repeater') && selectedRepeaterComp?.type === 'repeater') {
       const assignedCtx = selectedRepeaterComp?.assignedContextId
-      ? getContextById(selectedRepeaterComp.assignedContextId)
-      : null;
-    return (
+        ? getContextById(selectedRepeaterComp.assignedContextId)
+        : null;
+      const ctxSettings = getContextSettings(selectedRepeaterComp?.assignedContextId, selection.sectionId);
+      const contextSource = getContextSource(selectedRepeaterComp?.assignedContextId, selection.sectionId);
+      return (
       <RepeaterSettingsPanel
         availableContexts={availableContextsForRepeater}
         assignedContextId={selectedRepeaterComp?.assignedContextId ?? null}
@@ -775,24 +1073,21 @@ export function StudioEditor() {
           applyDefaultBindingsForContext(contextId);
         }}
         onOpenConnectModal={() => setConnectModalTarget({ type: 'component', sectionId: selection.sectionId, componentId: selection.componentId, mode: 'replace' })}
-        onClose={() => setRepeaterSettingsPanelOpen(false)}
+        onClose={() => { setRepeaterSettingsPanelOpen(false); setSelection(null); }}
         contextLabel={assignedCtx?.label ?? ''}
         hasContext={selectedRepeaterComp?.connected ?? false}
-        totalItems={assignedCtx?.items?.length ?? 0}
-        pageLoad={selectedRepeaterComp?.pageLoad ?? 4}
-        onPageLoadChange={(v) => setRepeaterPageLoad(selection.sectionId, selection.componentId, v)}
-        loadMoreEnabled={selectedRepeaterComp?.loadMoreEnabled !== false}
-        onLoadMoreChange={(enabled) => setRepeaterLoadMore(selection.sectionId, selection.componentId, enabled)}
-        onOpenFilter={() => openFilterModal(selection.sectionId, selection.componentId)}
-        filterRules={selectedRepeaterComp?.filterRules}
-        sortOption={selectedRepeaterComp?.sortOption ?? 'default'}
-        onSortChange={(option) => setRepeaterSort(selection.sectionId, selection.componentId, option)}
         itemsConnectTo={selectedRepeaterComp?.itemsConnectTo ?? 'items'}
         onItemsConnectToChange={(value) => {
           const setter = getSetBySection(selection.sectionId);
           setter((prev) => prev.map((c) => (c.id === selection.componentId ? { ...c, itemsConnectTo: value } : c)));
         }}
-        arrayFieldOptions={[{ value: 'items', label: 'Items' }]}
+        loadMoreEnabled={selectedRepeaterComp?.loadMoreEnabled !== false}
+        onLoadMoreChange={(enabled) => setRepeaterLoadMore(selection.sectionId, selection.componentId, enabled)}
+        contextSettingsReadOnly={ctxSettings ? { pageLoad: ctxSettings.pageLoad ?? 4, filterRules: ctxSettings.filterRules ?? [], sortRules: ctxSettings.sortRules ?? defaultSortRules, sortSummary: getSortSummary(ctxSettings.sortRules ?? defaultSortRules, getSortFieldsForContext(selectedRepeaterComp?.assignedContextId)) } : null}
+        contextSource={contextSource}
+        onOpenContextSettings={(source) => setSelection(source === 'page' ? { type: 'page' } : { type: 'section', sectionId: source })}
+        onOpenContextInstanceSettings={() => setContextInstanceModalTarget({ sectionId: selection.sectionId, componentId: selection.componentId })}
+        contextInstanceLabel={contextInstanceLabelMap[`${selection.sectionId}-${selection.componentId}`]}
       />
     );
     }
@@ -804,24 +1099,65 @@ export function StudioEditor() {
       <ConnectContextModal
         isOpen={connectModalTarget !== null}
         onClose={closeConnectModal}
+        connectTarget={connectModalTarget}
         targetLabel={
           connectModalTarget?.type === 'page'
             ? 'this page'
             : connectModalTarget?.type === 'section'
               ? 'this section'
               : connectModalTarget
-                ? 'this container'
+                ? 'this repeater'
                 : 'this page'
         }
-        allowedContextIds={connectModalTarget?.type === 'component' && connectModalTarget?.mode === 'replace' ? contextIdsOnPage : undefined}
-        onConnect={(contextId) => {
-          if (!connectModalTarget || !contextId) return;
-          if (connectModalTarget.type === 'page') {
-            updatePageContext(contextId);
-          } else if (connectModalTarget.type === 'section') {
-            updateSectionContext(connectModalTarget.sectionId, contextId);
-          } else {
-            setComponentContext(connectModalTarget.sectionId, connectModalTarget.componentId, contextId);
+        selectedContextId={
+          connectModalTarget?.type === 'page'
+            ? (pageContextIds?.[0] ?? null)
+            : connectModalTarget?.type === 'section'
+              ? (sectionContextIds[connectModalTarget.sectionId]?.[0] ?? null)
+              : connectModalTarget?.type === 'component' && connectModalTarget.sectionId && connectModalTarget.componentId
+                ? (getComponentsBySection(connectModalTarget.sectionId)?.find((c) => c.id === connectModalTarget.componentId)?.assignedContextId)
+                : null
+        }
+        allowedContextIds={undefined}
+        allowedContextsWithInstances={connectModalTarget?.type === 'component' ? parentContextsForRepeaterModal : undefined}
+        allowAddContext={connectModalTarget?.type === 'component'}
+        suggestedContextIdForPreset={
+          connectModalTarget?.type === 'component' && connectModalTarget.sectionId && connectModalTarget.componentId
+            ? (() => {
+                const comp = getComponentsBySection(connectModalTarget.sectionId)?.find((c) => c.id === connectModalTarget.componentId);
+                return comp?.preset === 'services' ? 'services' : comp?.preset === 'books' ? 'bookends' : comp?.preset === 'realestate' ? 'realestate' : null;
+              })()
+            : null
+        }
+        createdContextIds={contextIdsCreatedOnPage}
+        addContextTarget={
+          connectModalTarget?.type === 'component' && connectModalTarget.sectionId && connectModalTarget.componentId
+            ? { type: 'repeaterAddContext', sectionId: connectModalTarget.sectionId, componentId: connectModalTarget.componentId }
+            : undefined
+        }
+        attachedContextIds={
+          connectModalTarget?.type === 'page'
+            ? (pageContextIds || [])
+            : connectModalTarget?.type === 'section'
+              ? (sectionContextIds[connectModalTarget.sectionId] || [])
+              : undefined
+        }
+        onConnect={(contextId, target) => {
+          if (!contextId) return;
+          const t = target ?? connectModalTarget;
+          if (!t) return;
+          if (t.type === 'page') {
+            addPageContext(contextId);
+          } else if (t.type === 'section') {
+            addSectionContext(t.sectionId, contextId);
+          } else if (t.type === 'repeaterAddContext' && t.sectionId && t.componentId) {
+            setComponentContext(t.sectionId, t.componentId, contextId, 'add');
+            applyDefaultBindingsForContext(contextId);
+            if (connectModalPresetIds.includes(contextId)) {
+              setPresetUsedIds((prev) => (prev.includes(contextId) ? prev : [...prev, contextId]));
+            }
+          } else if (t.sectionId && t.componentId) {
+            setComponentContext(t.sectionId, t.componentId, contextId, 'parent');
             applyDefaultBindingsForContext(contextId);
             if (connectModalPresetIds.includes(contextId)) {
               setPresetUsedIds((prev) => (prev.includes(contextId) ? prev : [...prev, contextId]));
@@ -834,25 +1170,148 @@ export function StudioEditor() {
         isOpen={filterModalTarget !== null}
         onClose={closeFilterModal}
         filterRules={
-          filterModalTarget
-            ? getComponentsBySection(filterModalTarget.sectionId)?.find((c) => c.id === filterModalTarget.componentId)?.filterRules ?? []
-            : []
+          filterModalTarget?.type === 'context' && filterModalTarget.contextId != null
+            ? (filterModalTarget.source === 'page'
+                ? (pageContextSettings || {})[filterModalTarget.contextId]?.filterRules
+                : (sectionContextSettings[filterModalTarget.source] || {})[filterModalTarget.contextId]?.filterRules) ?? []
+            : filterModalTarget?.type === 'component' && filterModalTarget.sectionId
+              ? getComponentsBySection(filterModalTarget.sectionId)?.find((c) => c.id === filterModalTarget.componentId)?.filterRules ?? []
+              : []
         }
         onApply={(rules) => {
-          if (filterModalTarget) {
+          if (filterModalTarget?.type === 'context' && filterModalTarget.contextId != null) {
+            if (filterModalTarget.source === 'page') updatePageContextSettings(filterModalTarget.contextId, { filterRules: rules });
+            else updateSectionContextSettings(filterModalTarget.source, filterModalTarget.contextId, { filterRules: rules });
+          } else if (filterModalTarget?.type === 'component') {
             setRepeaterFilterRules(filterModalTarget.sectionId, filterModalTarget.componentId, rules);
           }
           closeFilterModal();
         }}
+        availableFields={
+          filterModalTarget?.type === 'context' && filterModalTarget.contextId != null
+            ? getFilterFieldsForContext(filterModalTarget.contextId)
+            : filterModalTarget?.type === 'component' && filterModalTarget.sectionId
+              ? (() => {
+                  const comp = getComponentsBySection(filterModalTarget.sectionId)?.find((c) => c.id === filterModalTarget.componentId);
+                  return getFilterFieldsForContext(comp?.assignedContextId);
+                })()
+              : undefined
+        }
       />
+      <SortModal
+        isOpen={sortModalTarget !== null}
+        onClose={() => setSortModalTarget(null)}
+        sortRules={
+          sortModalTarget?.type === 'context' && sortModalTarget.contextId != null
+            ? (sortModalTarget.source === 'page'
+                ? (pageContextSettings || {})[sortModalTarget.contextId]?.sortRules
+                : (sectionContextSettings[sortModalTarget.source] || {})[sortModalTarget.contextId]?.sortRules) ?? []
+            : sortModalTarget?.type === 'component' && sortModalTarget.sectionId
+              ? getComponentsBySection(sortModalTarget.sectionId)?.find((c) => c.id === sortModalTarget.componentId)?.sortRules ?? []
+              : []
+        }
+        onApply={(rules) => {
+          if (sortModalTarget?.type === 'context' && sortModalTarget.contextId != null) {
+            if (sortModalTarget.source === 'page') updatePageContextSettings(sortModalTarget.contextId, { sortRules: rules ?? [] });
+            else updateSectionContextSettings(sortModalTarget.source, sortModalTarget.contextId, { sortRules: rules ?? [] });
+          } else if (sortModalTarget?.type === 'component') {
+            setRepeaterSortRules(sortModalTarget.sectionId, sortModalTarget.componentId, rules ?? []);
+          }
+          setSortModalTarget(null);
+        }}
+        availableFields={
+          sortModalTarget?.type === 'context' && sortModalTarget.contextId != null
+            ? getSortFieldsForContext(sortModalTarget.contextId)
+            : sortModalTarget?.type === 'component' && sortModalTarget.sectionId
+              ? (() => {
+                  const comp = getComponentsBySection(sortModalTarget.sectionId)?.find((c) => c.id === sortModalTarget.componentId);
+                  return getSortFieldsForContext(comp?.assignedContextId) ?? [];
+                })()
+              : []
+        }
+      />
+      {contextInstanceModalTarget && (() => {
+        if (contextInstanceModalTarget.type === 'page' && contextInstanceModalTarget.contextId) {
+          const contextId = contextInstanceModalTarget.contextId;
+          const settings = (pageContextSettings || {})[contextId] ?? defaultContextSettings();
+          return (
+            <ContextInstanceSettingsModal
+              isOpen
+              onClose={() => setContextInstanceModalTarget(null)}
+              instanceLabel={contextInstanceLabelMap[`page-${contextId}`] ?? '—'}
+              pageLoad={settings?.pageLoad ?? 4}
+              onPageLoadChange={(v) => updatePageContextSettings(contextId, { pageLoad: Math.max(1, Math.min(100, Number(v) || 1)) })}
+              filterRules={settings?.filterRules ?? []}
+              onOpenFilter={() => openFilterModalForContext('page', contextId)}
+              sortRules={settings?.sortRules ?? defaultSortRules}
+              onOpenSort={() => setSortModalTarget({ type: 'context', source: 'page', contextId })}
+              availableSortFields={getSortFieldsForContext(contextId)}
+            />
+          );
+        }
+        if (contextInstanceModalTarget.type === 'section' && contextInstanceModalTarget.sectionId && contextInstanceModalTarget.contextId) {
+          const sectionId = contextInstanceModalTarget.sectionId;
+          const contextId = contextInstanceModalTarget.contextId;
+          const settings = (sectionContextSettings[sectionId] || {})[contextId] ?? defaultContextSettings();
+          return (
+            <ContextInstanceSettingsModal
+              isOpen
+              onClose={() => setContextInstanceModalTarget(null)}
+              instanceLabel={contextInstanceLabelMap[`${sectionId}-${contextId}`] ?? '—'}
+              pageLoad={settings?.pageLoad ?? 4}
+              onPageLoadChange={(v) => updateSectionContextSettings(sectionId, contextId, { pageLoad: Math.max(1, Math.min(100, Number(v) || 1)) })}
+              filterRules={settings?.filterRules ?? []}
+              onOpenFilter={() => openFilterModalForContext(sectionId, contextId)}
+              sortRules={settings?.sortRules ?? defaultSortRules}
+              onOpenSort={() => setSortModalTarget({ type: 'context', source: sectionId, contextId })}
+              availableSortFields={getSortFieldsForContext(contextId)}
+            />
+          );
+        }
+        const comp = getComponentsBySection(contextInstanceModalTarget.sectionId)?.find((c) => c.id === contextInstanceModalTarget.componentId);
+        const instanceLabel = contextInstanceLabelMap[`${contextInstanceModalTarget.sectionId}-${contextInstanceModalTarget.componentId}`] ?? '—';
+        const contextId = comp?.assignedContextId;
+        return (
+          <ContextInstanceSettingsModal
+            isOpen
+            onClose={() => setContextInstanceModalTarget(null)}
+            instanceLabel={instanceLabel}
+            pageLoad={comp?.pageLoad ?? 4}
+            onPageLoadChange={(v) => setRepeaterPageLoad(contextInstanceModalTarget.sectionId, contextInstanceModalTarget.componentId, v)}
+            filterRules={comp?.filterRules ?? []}
+            onOpenFilter={() => openFilterModal(contextInstanceModalTarget.sectionId, contextInstanceModalTarget.componentId)}
+            sortRules={comp?.sortRules ?? defaultSortRules}
+            onOpenSort={() => setSortModalTarget({ type: 'component', sectionId: contextInstanceModalTarget.sectionId, componentId: contextInstanceModalTarget.componentId })}
+            availableSortFields={getSortFieldsForContext(contextId)}
+          />
+        );
+      })()}
       {manageItemsTarget && (() => {
         const comp = getComponentsBySection(manageItemsTarget.sectionId)?.find((c) => c.id === manageItemsTarget.componentId);
         const ctx = comp?.assignedContextId ? getContextById(comp.assignedContextId) : null;
+        const ctxSettings = getContextSettings(comp?.assignedContextId, manageItemsTarget.sectionId);
+        const filterRules = ctxSettings?.filterRules ?? comp?.filterRules ?? [];
+        const rawSortRules = ctxSettings?.sortRules ?? comp?.sortRules ?? defaultSortRules;
+        const sortRules = (rawSortRules?.length ? rawSortRules : null) ?? defaultSortRules;
         const rawItems = ctx ? itemsForContext(comp.assignedContextId) : [];
-        const filtered = applyFilterRules(rawItems, comp?.filterRules ?? []);
-        const sorted = [...filtered];
-        if (comp?.sortOption === 'name') sorted.sort((a, b) => (a.title ?? a.name ?? '').localeCompare(b.title ?? b.name ?? ''));
-        if (comp?.sortOption === 'nameDesc') sorted.sort((a, b) => (b.title ?? b.name ?? '').localeCompare(a.title ?? a.name ?? ''));
+        const sorted = applySortRules(applyFilterRules(rawItems, filterRules), sortRules);
+        const source = getContextSource(comp?.assignedContextId, manageItemsTarget.sectionId);
+        const contextId = comp?.assignedContextId;
+        const onSortChange = (rules) => {
+          if (source === 'page' && contextId) updatePageContextSettings(contextId, { sortRules: rules ?? [] });
+          else if (source && contextId) updateSectionContextSettings(source, contextId, { sortRules: rules ?? [] });
+          else setRepeaterSortRules(manageItemsTarget.sectionId, manageItemsTarget.componentId, rules ?? []);
+        };
+        const onOpenFilter = () => {
+          if (source === 'page' && contextId) openFilterModalForContext('page', contextId);
+          else if (source && contextId) openFilterModalForContext(source, contextId);
+          else openFilterModal(manageItemsTarget.sectionId, manageItemsTarget.componentId);
+        };
+        const onRemoveFilter = () => {
+          if (source === 'page' && contextId) updatePageContextSettings(contextId, { filterRules: [] });
+          else if (source && contextId) updateSectionContextSettings(source, contextId, { filterRules: [] });
+          else setRepeaterFilterRules(manageItemsTarget.sectionId, manageItemsTarget.componentId, []);
+        };
         return (
           <ManageItemsPanel
             isOpen
@@ -860,11 +1319,13 @@ export function StudioEditor() {
             collectionLabel={ctx?.label ?? 'Collection'}
             collectionId={comp?.assignedContextId ?? null}
             items={sorted}
-            sortOption={comp?.sortOption ?? 'default'}
-            onSortChange={(option) => setRepeaterSort(manageItemsTarget.sectionId, manageItemsTarget.componentId, option)}
-            filterRules={comp?.filterRules ?? []}
-            onOpenFilter={() => openFilterModal(manageItemsTarget.sectionId, manageItemsTarget.componentId)}
-            onRemoveFilter={() => setRepeaterFilterRules(manageItemsTarget.sectionId, manageItemsTarget.componentId, [])}
+            sortRules={sortRules}
+            onSortChange={onSortChange}
+            onOpenSort={() => setSortModalTarget({ type: 'component', sectionId: manageItemsTarget.sectionId, componentId: manageItemsTarget.componentId })}
+            availableSortFields={getSortFieldsForContext(comp?.assignedContextId) ?? []}
+            filterRules={filterRules}
+            onOpenFilter={onOpenFilter}
+            onRemoveFilter={onRemoveFilter}
             onOpenCollection={closeManageItems}
             onEditItem={(item) => { closeManageItems(); selectRepeaterItem(manageItemsTarget.sectionId, manageItemsTarget.componentId, item.id); }}
             onAddItem={() => {}}
@@ -892,22 +1353,9 @@ export function StudioEditor() {
         </div>
         {studioTab === 'concept' && (
           <p className="editor-studio-concept-desc">
-            Concept 1: User can design the repeater without selecting the context.
+            User can design the blank repeater without selecting the context. For design presets, context selection is required first.
           </p>
         )}
-        {studioTab === 'contextFirst' && (
-          <p className="editor-studio-concept-desc">
-            Concept 2: Connect the repeater to a context first.
-          </p>
-        )}
-        <label className="editor-technical-mode">
-          <input
-            type="checkbox"
-            checked={technicalMode}
-            onChange={(e) => setTechnicalMode(e.target.checked)}
-          />
-          Technical mode
-        </label>
       </header>
 
       <div className="editor-workspace">
@@ -916,10 +1364,13 @@ export function StudioEditor() {
             className="stage--studio"
             isPageSelected={selection?.type === 'page'}
             onSelectPage={selectPage}
-            pageContextLabel={getContextById(pageContextId)?.label}
-            pageContextInstanceLabel={pageContextId ? (getContextById(pageContextId)?.label ?? '—') : '—'}
+            pageContexts={(pageContextIds || []).map((id) => ({
+              label: getContextById(id)?.label ?? '—',
+              instanceLabel: contextInstanceLabelMap[`page-${id}`] ?? '—',
+            }))}
             onOpenPageConnect={openPageConnectModal}
-            showPageConnectButton={!pageContextId}
+            showPageConnectButton={true}
+            hasPageContext={(pageContextIds || []).length > 0}
           >
             <Section
               sectionId="section1"
@@ -933,10 +1384,12 @@ export function StudioEditor() {
               selectedComponentId={(selection?.type === 'component' || selection?.type === 'repeater' || selection?.type === 'repeaterItem' || selection?.type === 'blankSlotElement') && selection?.sectionId === 'section1' ? selection.componentId : null}
               onSelectSection={selectSection}
               onSelectComponent={selectComponent}
-              contextLabel={getContextById(sectionContextIds.section1)?.label}
-              contextInstanceLabel={sectionContextIds.section1 ? (getContextById(sectionContextIds.section1)?.label ?? '—') : '—'}
+              sectionContexts={(sectionContextIds.section1 || []).map((id) => ({
+                label: getContextById(id)?.label ?? '—',
+                instanceLabel: contextInstanceLabelMap[`section1-${id}`] ?? '—',
+              }))}
               onOpenSectionConnect={() => openSectionConnectModal('section1')}
-              showSectionConnectButton={!sectionContextIds.section1}
+              showSectionConnectButton={true}
             />
             <Section
               sectionId="section2"
@@ -953,10 +1406,12 @@ export function StudioEditor() {
               onSelectSection={selectSection}
               onSelectContentTitle={selectContentTitle}
               onSelectComponent={selectComponent}
-              contextLabel={getContextById(sectionContextIds.section2)?.label}
-              contextInstanceLabel={sectionContextIds.section2 ? (getContextById(sectionContextIds.section2)?.label ?? '—') : '—'}
+              sectionContexts={(sectionContextIds.section2 || []).map((id) => ({
+                label: getContextById(id)?.label ?? '—',
+                instanceLabel: contextInstanceLabelMap[`section2-${id}`] ?? '—',
+              }))}
               onOpenSectionConnect={() => openSectionConnectModal('section2')}
-              showSectionConnectButton={!sectionContextIds.section2}
+              showSectionConnectButton={true}
             />
             <Section
               sectionId="section3"
@@ -970,10 +1425,12 @@ export function StudioEditor() {
               selectedComponentId={(selection?.type === 'component' || selection?.type === 'repeater' || selection?.type === 'repeaterItem' || selection?.type === 'blankSlotElement') && selection?.sectionId === 'section3' ? selection.componentId : null}
               onSelectSection={selectSection}
               onSelectComponent={selectComponent}
-              contextLabel={getContextById(sectionContextIds.section3)?.label}
-              contextInstanceLabel={sectionContextIds.section3 ? (getContextById(sectionContextIds.section3)?.label ?? '—') : '—'}
+              sectionContexts={(sectionContextIds.section3 || []).map((id) => ({
+                label: getContextById(id)?.label ?? '—',
+                instanceLabel: contextInstanceLabelMap[`section3-${id}`] ?? '—',
+              }))}
               onOpenSectionConnect={() => openSectionConnectModal('section3')}
-              showSectionConnectButton={!sectionContextIds.section3}
+              showSectionConnectButton={true}
             />
           </Stage>
         </section>

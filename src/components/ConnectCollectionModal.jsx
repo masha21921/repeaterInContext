@@ -43,10 +43,12 @@ export function ConnectCollectionModal({
     [mode, presetUsedIds]
   );
   const existingCollectionIds = useMemo(
-    () =>
-      allowedContextIds && allowedContextIds.length > 0
-        ? baseExistingIds.filter((id) => allowedContextIds.includes(id))
-        : baseExistingIds,
+    () => {
+      if (allowedContextIds && allowedContextIds.length > 0) {
+        return baseExistingIds.filter((id) => allowedContextIds.includes(id));
+      }
+      return baseExistingIds;
+    },
     [baseExistingIds, allowedContextIds]
   );
   const existingCollections = useMemo(
@@ -60,7 +62,7 @@ export function ConnectCollectionModal({
         })),
     [existingCollectionIds]
   );
-  const noContextOnPage = allowedContextIds && allowedContextIds.length === 0;
+  const noContextOnPage = allowedContextIds != null && allowedContextIds.length === 0;
 
   const selectedCollection = selectedId
     ? availableContexts.find((c) => c.id === selectedId)

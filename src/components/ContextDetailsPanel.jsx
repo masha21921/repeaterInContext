@@ -1,7 +1,7 @@
 import './RepeaterItemSettingsPanel.css';
 
 /**
- * Panel shown in the right sidebar when "details" is clicked in technical mode.
+ * Panel shown in the right sidebar when "details" is clicked.
  * Displays context instance: pagination, filter, sort. When not connected, shows empty state.
  */
 export function ContextDetailsPanel({ contextInstance, contextLabel, contextInstanceLabel, connected, onClose }) {
@@ -40,9 +40,11 @@ export function ContextDetailsPanel({ contextInstance, contextLabel, contextInst
       });
     }
   }
-  if (contextInstance.sort != null) {
-    const s = typeof contextInstance.sort === 'string' ? contextInstance.sort : contextInstance.sort?.option ?? 'default';
-    lines.push('sort: "' + s + '"');
+  if (contextInstance.sortSummary != null || (contextInstance.sortRules != null && contextInstance.sortRules.length > 0)) {
+    lines.push('sort: ' + (contextInstance.sortSummary ?? JSON.stringify(contextInstance.sortRules)));
+  } else if (contextInstance.sort != null && contextInstance.sort !== '') {
+    const sortLabel = contextInstance.sort === 'default' ? 'Date created (New → Old)' : String(contextInstance.sort);
+    lines.push('sort: ' + sortLabel);
   }
   const detailsText = lines.join('\n');
 

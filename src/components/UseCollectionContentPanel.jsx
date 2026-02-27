@@ -120,6 +120,41 @@ const FIELD_OPTIONS_BY_CONTEXT = {
   actorsButtonLink: [
     { value: 'detailPage', label: 'Actor page', fieldType: FIELD_TYPE.link },
   ],
+  services: [
+    { value: 'title', label: 'Service name', fieldType: FIELD_TYPE.text },
+    { value: 'description', label: 'Description', fieldType: FIELD_TYPE.text },
+  ],
+  servicesImage: [
+    { value: 'image', label: 'Main image', fieldType: FIELD_TYPE.image },
+  ],
+  servicesImageAlt: [
+    { value: 'title', label: 'Service name', fieldType: FIELD_TYPE.text },
+    { value: 'description', label: 'Description', fieldType: FIELD_TYPE.text },
+  ],
+  servicesButton: [
+    { value: 'title', label: 'Service name', fieldType: FIELD_TYPE.text },
+    { value: 'buttonText', label: 'Button text', fieldType: FIELD_TYPE.text },
+  ],
+  servicesButtonLink: [
+    { value: 'detailPage', label: 'Service page', fieldType: FIELD_TYPE.link },
+  ],
+  bookends: [
+    { value: 'title', label: 'Book title', fieldType: FIELD_TYPE.text },
+    { value: 'author', label: 'Author', fieldType: FIELD_TYPE.text },
+  ],
+  bookendsImage: [
+    { value: 'image', label: 'Cover', fieldType: FIELD_TYPE.image },
+  ],
+  bookendsImageAlt: [
+    { value: 'title', label: 'Book title', fieldType: FIELD_TYPE.text },
+    { value: 'author', label: 'Author', fieldType: FIELD_TYPE.text },
+  ],
+  bookendsButton: [
+    { value: 'title', label: 'Book title', fieldType: FIELD_TYPE.text },
+  ],
+  bookendsButtonLink: [
+    { value: 'detailPage', label: 'Book page', fieldType: FIELD_TYPE.link },
+  ],
   default: [
     { value: 'title', label: 'Title', fieldType: FIELD_TYPE.text },
     { value: 'name', label: 'Name', fieldType: FIELD_TYPE.text },
@@ -199,6 +234,8 @@ function getFieldOptions(contextId, contextType, bindProperty = 'text') {
     : '';
   if (contextId === 'team') return FIELD_OPTIONS_BY_CONTEXT['team' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.team;
   if (contextType === 'recipes' || contextId === 'recipes') return FIELD_OPTIONS_BY_CONTEXT['recipes' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.recipes;
+  if (contextId === 'services' || contextType === 'services') return FIELD_OPTIONS_BY_CONTEXT['services' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.services;
+  if (contextId === 'bookends' || contextType === 'bookends') return FIELD_OPTIONS_BY_CONTEXT['bookends' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.bookends;
   if (contextType === 'offices') return FIELD_OPTIONS_BY_CONTEXT['offices' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.offices;
   if (contextId === 'films' || contextType === 'films') return FIELD_OPTIONS_BY_CONTEXT['films' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.films;
   if (contextId === 'actors' || contextType === 'actors') return FIELD_OPTIONS_BY_CONTEXT['actors' + suffix] ?? FIELD_OPTIONS_BY_CONTEXT.actors;
@@ -213,13 +250,47 @@ export function UseCollectionContentPanel({
   selectedField = '',
   onSelectField,
   onClose,
+  repeaterAssignedContextId = null,
+  repeaterContextLabel = null,
+  /** Single label when Source is read-only (no dropdown). */
+  sourceLabel = null,
+  /** When set, Source is a dropdown; options are { contextId, label }. */
+  sourceOptions = null,
+  selectedSourceContextId = null,
+  onSourceChange,
+  /** When no source is selected, use this context to resolve field labels (e.g. repeater's context) so the Property button shows "Recipe name" not "Title". */
+  fallbackContextIdForLabel = null,
+  fallbackContextTypeForLabel = null,
+  /** Optional aria-label for the Source select (e.g. "Source collection" in Harmony). */
+  sourceSelectAriaLabel = 'Source context',
 }) {
   const [open, setOpen] = useState(false);
-  const fieldOptions = getFieldOptions(contextId, contextType, bindProperty);
+  const effectiveContextId = contextId ?? (selectedField ? fallbackContextIdForLabel : null);
+  const effectiveContextType = contextType ?? (selectedField ? fallbackContextTypeForLabel : null);
+  const fieldOptions = getFieldOptions(effectiveContextId, effectiveContextType, bindProperty);
   const noConnectionOption = { value: '', label: 'No connection', fieldType: FIELD_TYPE.text };
   const selectedOption = selectedField === '' || selectedField == null
     ? noConnectionOption
-    : (fieldOptions.find((o) => o.value === selectedField) ?? fieldOptions[0]);
+    : (fieldOptions.find((o) => o.value === selectedField) ?? { value: selectedField, label: selectedField, fieldType: FIELD_TYPE.text });
+
+  // When Source is a dropdown, use selectedSourceContextId so the notice reflects the user's choice immediately
+  const selectedSourceId =
+    (sourceOptions && selectedSourceContextId != null && selectedSourceContextId !== '')
+      ? selectedSourceContextId
+      : (contextId ?? (selectedSourceContextId || null));
+  // Show warning when we're in repeater-item panel and the chosen source is not the repeater's context (or repeater has no context but user picked a source)
+  const isRepeaterItemPanel = repeaterAssignedContextId !== undefined;
+  const hasSourceSelected = selectedSourceId != null && String(selectedSourceId).trim() !== '';
+  const sourceIsNotRepeaterContext =
+    repeaterAssignedContextId == null ||
+    repeaterAssignedContextId === '' ||
+    String(selectedSourceId) !== String(repeaterAssignedContextId);
+  const connectingToNonRepeaterContext =
+    isRepeaterItemPanel && hasSourceSelected && sourceIsNotRepeaterContext;
+  const hasOnlyPlaceholderSource = sourceOptions?.length === 1 && sourceOptions[0]?.contextId === '';
+  const noContextAvailable = repeaterAssignedContextId !== undefined && !contextId && (!sourceOptions || sourceOptions.length === 0 || hasOnlyPlaceholderSource);
+  /** When Source is a dropdown, Property is disabled until user selects a source (context). */
+  const propertyDisabled = sourceOptions != null && sourceOptions.length > 0 && (contextId == null || contextId === '');
 
   const ref = useRef(null);
   useEffect(() => {
@@ -242,24 +313,62 @@ export function UseCollectionContentPanel({
         </div>
       </div>
       <div className="repeater-item-settings-panel__body">
-        <p className="use-collection-content-panel__desc">
-          Show content from a{' '}
-          <span className="use-collection-content-panel__link">{collectionLabel}</span>
-          {' '}collection field, or choose an action.
-        </p>
+        {(sourceLabel != null || (sourceOptions && sourceOptions.length > 0)) && (
+          <div className="use-collection-content-panel__meta">
+            <div className="use-collection-content-panel__meta-row">
+              <span className="use-collection-content-panel__meta-label">Source</span>
+              {(sourceOptions && sourceOptions.length > 0) && (onSourceChange != null || sourceOptions.some((o) => o.contextId === '')) ? (
+                <select
+                  className="use-collection-content-panel__source-select"
+                  value={selectedSourceContextId ?? ''}
+                  onChange={(e) => onSourceChange?.(e.target.value || null)}
+                  aria-label={sourceSelectAriaLabel}
+                  disabled={sourceOptions.length === 1 && sourceOptions[0].contextId === ''}
+                >
+                  {sourceOptions.map((opt) => (
+                    <option key={opt.contextId || '__none__'} value={opt.contextId}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="use-collection-content-panel__meta-value">{sourceLabel ?? '—'}</span>
+              )}
+            </div>
+          </div>
+        )}
+        {noContextAvailable && (
+          <div className="use-collection-content-panel__notice" role="status">
+            There is no context available. First add context to the repeater in Repeater settings.
+          </div>
+        )}
+        {!noContextAvailable && connectingToNonRepeaterContext && (
+          <div className="use-collection-content-panel__notice" role="status">
+            This source is not the repeater&apos;s context. The text will display the same content for all items.
+          </div>
+        )}
         <div className="repeater-item-settings-panel__row">
-          <label className="repeater-item-settings-panel__label">Field</label>
+          <label className="repeater-item-settings-panel__label">
+            Property
+            {propertyDisabled && (
+              <span className="use-collection-content-panel__property-hint">Select a source first</span>
+            )}
+          </label>
           <div className="use-collection-content-panel__field-wrap" ref={ref}>
             <button
               type="button"
-              className="use-collection-content-panel__field-btn"
-              onClick={() => setOpen((o) => !o)}
+              className={`use-collection-content-panel__field-btn ${propertyDisabled ? 'use-collection-content-panel__field-btn--disabled' : ''}`}
+              onClick={() => !propertyDisabled && setOpen((o) => !o)}
               aria-haspopup="listbox"
               aria-expanded={open}
-              aria-label="Field"
+              aria-label="Property"
+              aria-disabled={propertyDisabled}
+              disabled={propertyDisabled}
             >
               <FieldTypeIcon type={selectedOption?.fieldType ?? FIELD_TYPE.text} />
-              <span className="use-collection-content-panel__field-btn-label">{selectedOption?.label ?? 'Select field'}</span>
+              <span className="use-collection-content-panel__field-btn-label">
+                {propertyDisabled ? 'Select field' : (selectedOption?.label ?? 'Select field')}
+              </span>
               <span className="use-collection-content-panel__field-btn-arrow" aria-hidden>▼</span>
             </button>
             {open && (

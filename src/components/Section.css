@@ -46,6 +46,10 @@
   padding: 2px 6px;
   background: #e8eaed;
   border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
 }
 
 .stage-section__ctx-line {
@@ -139,21 +143,24 @@
   --repeater-accent: #1a73e8;
 }
 
-/* Repeater header: distinct color from section header (section = #e8eaed grey, repeater = light teal/blue) */
+/* Repeater container header: distinct from section gray – light blue tint */
 .stage-section .ctx-repeater {
-  --ctx-repeater-border: #202124;
-  --ctx-repeater-bg: #c8e6f5;
-  --repeater-accent: #1565c0;
+  --ctx-repeater-border: #a8c7fa;
+  --ctx-repeater-bg: #e8f0fe;
+  --ctx-repeater-title-color: #1967d2;
+  --ctx-repeater-line-color: #5f6368;
+  --repeater-accent: #1967d2;
 }
 
 .stage-section .ctx-repeater__line {
-  color: #202124;
+  color: #5f6368;
 }
 
 .stage-section .ctx-repeater--selected {
-  outline: 2px solid #e91e8c;
-  outline-offset: 2px;
-  box-shadow: 0 0 0 1px #e91e8c;
+  outline: 1px dashed #1967d2;
+  outline-offset: 1px;
+  box-shadow: none;
+  background: #d2e3fc;
 }
 
 /* Repeater (and other components) inside section – distinct visual */

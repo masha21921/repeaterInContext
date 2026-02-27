@@ -3,12 +3,19 @@
   margin-bottom: 12px;
   cursor: pointer;
   border-radius: 8px;
-  transition: box-shadow 0.15s, outline 0.15s;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+/* Selected but not connected to context: blue */
 .component-wrapper--selected {
-  outline: 2px solid #c9a0dc;
-  outline-offset: 2px;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px #1a73e8;
+}
+
+/* Selected and connected to context: pink */
+.component-wrapper--selected.component-wrapper--connected {
+  border-color: #c9a0dc;
   box-shadow: 0 0 0 1px #c9a0dc;
 }
 

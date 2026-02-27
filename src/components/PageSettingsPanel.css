@@ -1,11 +1,39 @@
 .page-settings-panel {
+  background: #fff;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
   padding: 0;
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.page-settings-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #e8eaed;
 }
 
 .page-settings-panel__title {
-  margin: 0 0 14px 0;
+  margin: 0;
   font-size: 1rem;
   font-weight: 600;
+  color: #202124;
+}
+
+.page-settings-panel__close {
+  background: none;
+  border: none;
+  color: #5f6368;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.page-settings-panel__close:hover {
   color: #202124;
 }
 
@@ -13,6 +41,80 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 16px;
+}
+
+.page-settings-panel__context-list {
+  list-style: none;
+  margin: 0 0 12px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.page-settings-panel__context-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 6px;
+}
+
+.page-settings-panel__context-item--card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.page-settings-panel__context-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-settings-panel__context-card-line {
+  font-size: 0.8125rem;
+  display: flex;
+  gap: 6px;
+}
+
+.page-settings-panel__context-card-meta {
+  color: #5f6368;
+  min-width: 100px;
+}
+
+.page-settings-panel__context-card-value {
+  color: #202124;
+  font-weight: 500;
+}
+
+.page-settings-panel__context-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-settings-panel__context-card-delete {
+  color: #c5221f;
+}
+
+.page-settings-panel__context-card-delete:hover {
+  color: #a50e0e;
+}
+
+.page-settings-panel__context-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #202124;
+}
+
+.page-settings-panel__context-empty {
+  margin: 0 0 12px 0;
+  font-size: 0.875rem;
+  color: #5f6368;
 }
 
 .page-settings-panel__label {

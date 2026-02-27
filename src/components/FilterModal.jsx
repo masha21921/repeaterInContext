@@ -13,7 +13,6 @@ const CONDITIONS = [
   { id: 'is not empty', label: 'is not empty' },
 ];
 
-const FIELD_TYPE_ICON = { text: 'T', number: '#' };
 const DEFAULT_FIELDS = [
   { id: 'title', label: 'Recipe name', type: 'text' },
   { id: 'image', label: 'Image', type: 'text' },
@@ -23,8 +22,7 @@ const DEFAULT_FIELDS = [
 ];
 
 function fieldDisplayLabel(field) {
-  const icon = FIELD_TYPE_ICON[field.type] || 'T';
-  return `${icon} ${field.label}`;
+  return field?.label ?? field?.id ?? '—';
 }
 
 /**

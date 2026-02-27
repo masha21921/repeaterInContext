@@ -1,0 +1,236 @@
+.sort-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 20px;
+}
+
+.sort-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+}
+
+.sort-modal__title {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.sort-modal__desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #5f6368;
+  line-height: 1.4;
+}
+
+.sort-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sort-modal__icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+  color: #5f6368;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sort-modal__icon-btn:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.sort-modal__body {
+  padding: 0 24px 20px;
+  overflow-y: auto;
+}
+
+.sort-modal__rules {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sort-modal__rule {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.sort-modal__field-wrap,
+.sort-modal__direction-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sort-modal__field-wrap {
+  min-width: 160px;
+}
+
+.sort-modal__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #5f6368;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sort-modal__select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #202124;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+}
+
+.sort-modal__select:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+.sort-modal__direction-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.sort-modal__direction-btn {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #5f6368;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sort-modal__direction-btn:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
+}
+
+.sort-modal__direction-btn--active {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+  color: #1a73e8;
+}
+
+.sort-modal__delete {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  align-self: end;
+}
+
+.sort-modal__delete:hover {
+  background: #fce8e6;
+  color: #c5221f;
+}
+
+.sort-modal__add {
+  margin-top: 12px;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1a73e8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-modal__add:hover {
+  text-decoration: underline;
+}
+
+.sort-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid #e8eaed;
+}
+
+.sort-modal__btn {
+  padding: 8px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.sort-modal__btn--secondary {
+  background: #fff;
+  color: #5f6368;
+  border-color: #dadce0;
+}
+
+.sort-modal__btn--secondary:hover {
+  background: #f8f9fa;
+}
+
+.sort-modal__btn--primary {
+  background: #1a73e8;
+  color: #fff;
+}
+
+.sort-modal__btn--primary:hover {
+  background: #1765cc;
+}
+
+.sort-modal__btn--remove {
+  margin-right: auto;
+  color: #c5221f;
+  border-color: transparent;
+}
+
+.sort-modal__btn--remove:hover {
+  background: #fce8e6;
+}

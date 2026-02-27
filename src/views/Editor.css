@@ -76,20 +76,6 @@
   color: rgba(255, 255, 255, 0.75);
 }
 
-.editor-technical-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 12px 0;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-}
-
-.editor-technical-mode input {
-  cursor: pointer;
-}
-
 .editor-badge {
   display: inline-block;
   padding: 6px 12px;

@@ -10,6 +10,8 @@ function getTextFieldLabel(contextId, contextType, fieldValue) {
   const byContext = {
     recipes: { title: 'Recipe name', description: 'Description', course: 'Course' },
     team: { title: 'Name', bio: 'Bio' },
+    services: { title: 'Service name', description: 'Description' },
+    bookends: { title: 'Book title', author: 'Author' },
     offices: { name: 'Name', description: 'Description', code: 'Code' },
     films: { title: 'Film title', year: 'Year', description: 'Description', director: 'Director' },
     actors: { name: 'Name', bio: 'Bio' },
@@ -17,6 +19,8 @@ function getTextFieldLabel(contextId, contextType, fieldValue) {
   };
   const ctx = contextId === 'recipes' || contextType === 'recipes' ? 'recipes'
     : contextId === 'team' ? 'team'
+    : contextId === 'services' || contextType === 'services' ? 'services'
+    : contextId === 'bookends' || contextType === 'bookends' ? 'bookends'
     : contextType === 'offices' ? 'offices'
     : contextId === 'films' || contextType === 'films' ? 'films'
     : contextId === 'actors' || contextType === 'actors' ? 'actors'
@@ -70,7 +74,7 @@ export function RepeaterItemElementPanel({ item, elementKind, contextId, context
               <input
                 type="text"
                 className="repeater-item-settings-panel__input"
-                value={textConnected ? (textFieldLabel || item.boundField || '') : textContent}
+                value={textConnected ? (textFieldLabel || item.boundField || '') : (textContent || 'text')}
                 onChange={(e) => handleChange(textContentKey, e.target.value)}
                 placeholder={textConnected ? '' : (isOffices ? 'Name' : 'Recipe name')}
                 readOnly={textConnected}

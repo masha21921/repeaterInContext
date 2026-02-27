@@ -27,14 +27,21 @@ export function Section({
   onSelectSection,
   onSelectContentTitle,
   onSelectComponent,
-  technicalMode,
+  /** Single-context legacy. */
   contextLabel,
   contextInstanceLabel,
+  /** Multi-context: array of { label, instanceLabel } (overrides single if length > 0). */
+  sectionContexts = [],
   showContextLabel = true,
   onOpenSectionConnect,
-  /** When false, Connect button is hidden (e.g. when section is already connected). */
+  /** When false, Connect button is hidden. */
   showSectionConnectButton = true,
 }) {
+  const contextsToShow = Array.isArray(sectionContexts) && sectionContexts.length > 0
+    ? sectionContexts
+    : (contextLabel != null || contextInstanceLabel != null
+      ? [{ label: contextLabel ?? '—', instanceLabel: contextInstanceLabel ?? '—' }]
+      : []);
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -87,9 +94,20 @@ export function Section({
       <div className="stage-section__header">
         <span className="stage-section__title">{title}</span>
         {showContextLabel && (
-          <span className="stage-section__ctx-line">
-            <strong>CTX:</strong> {contextLabel ?? '—'}{' '}
-            <strong>CTX instance:</strong> {contextInstanceLabel ?? '—'}
+          <span className="stage-section__ctx">
+            {contextsToShow.length === 0 ? (
+              <span className="stage-section__ctx-line">
+                <strong>CTX:</strong> — <strong>CTX instance:</strong> —
+              </span>
+            ) : (
+              contextsToShow.map((ctx, i) => (
+                <span key={i} className="stage-section__ctx-line">
+                  <strong>CTX:</strong> {ctx.label ?? '—'}{' '}
+                  <strong>CTX instance:</strong> {ctx.instanceLabel ?? '—'}
+                  {i < contextsToShow.length - 1 ? ', ' : ''}
+                </span>
+              ))
+            )}
           </span>
         )}
         {onOpenSectionConnect && showSectionConnectButton && (
@@ -130,6 +148,7 @@ export function Section({
           <ComponentWrapper
             key={comp.id}
             isSelected={selectedComponentId === comp.id}
+            connected={comp.connected ?? false}
             onSelect={() => onSelectComponent?.(sectionId, comp.id)}
             draggablePayload={
               comp.type === 'text'

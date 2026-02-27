@@ -106,6 +106,94 @@
   min-height: 0;
 }
 
+.connect-context-modal__section {
+  margin-bottom: 16px;
+}
+
+.connect-context-modal__section:last-child {
+  margin-bottom: 0;
+}
+
+.connect-context-modal__section-title {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #202124;
+}
+
+.connect-context-modal__section--suggested {
+  padding: 12px 14px;
+  background: #e8f0fe;
+  border: 1px solid #a8c7fa;
+  border-radius: 8px;
+}
+
+.connect-context-modal__section--suggested .connect-context-modal__section-title {
+  color: #1967d2;
+}
+
+.connect-context-modal__suggested-hint {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  color: #5f6368;
+  line-height: 1.4;
+}
+
+.connect-context-modal__option--suggested {
+  border-radius: 6px;
+}
+
+.connect-context-modal__section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #202124;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.connect-context-modal__section-head:hover {
+  color: #1a73e8;
+}
+
+.connect-context-modal__add-body {
+  padding-left: 4px;
+  margin-top: 4px;
+}
+
+.connect-context-modal__add-body .connect-context-modal__search-wrap {
+  margin-bottom: 12px;
+}
+
+.connect-context-modal__available-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.connect-context-modal__available-list li {
+  margin: 0;
+}
+
+.connect-context-modal__option-label-main {
+  display: block;
+  font-weight: 500;
+}
+
+.connect-context-modal__option-label-instance {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #5f6368;
+  margin-top: 2px;
+}
+
 .connect-context-modal__empty {
   margin: 0;
   font-size: 0.9rem;
@@ -186,9 +274,39 @@
 }
 
 .connect-context-modal__option-label {
-  font-size: 0.9375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #202124;
+}
+
+.connect-context-modal__option-line {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #202124;
+}
+
+.connect-context-modal__option-line--provider {
+  font-weight: 500;
+}
+
+.connect-context-modal__option-line--instance {
+  color: #5f6368;
+}
+
+.connect-context-modal__option-level {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #5f6368;
+  background: #e8eaed;
+  border-radius: 4px;
+  width: fit-content;
 }
 
 .connect-context-modal__footer {

@@ -24,8 +24,6 @@ export function Repeater({
   onOpenConnectModal,
   onOpenManageItems,
   onOpenRepeaterSettings,
-  technicalMode,
-  exposeContext = false,
   contextLabel,
   contextInstanceLabel,
   contextInstance,
@@ -34,6 +32,8 @@ export function Repeater({
   onSelectRepeater,
   /** When user clicks the inner repeater content (below container header), call to select repeater and show Repeater settings. */
   onSelectInnerRepeater,
+  /** When true (e.g. repeater uses same context as section/page), hide the container bar. */
+  usesParentContext = false,
   requireContext = false,
   hasActiveFilter = false,
   unconfiguredRibbonDescription,
@@ -44,6 +44,8 @@ export function Repeater({
   headerAction = 'connect',
   /** Studio preset: 'blank' shows three-column layout with drag/resize/expand chrome when unconfigured. */
   preset,
+  /** When set (design preset), unconfigured repeater still shows virtual repeater container with this context label (e.g. "Services", "Books"). */
+  presetContextLabel,
   /** Elements (text/image) dropped from section onto this repeater – rendered in each item. */
   droppedElements = [],
   onDropElement,
@@ -247,7 +249,7 @@ export function Repeater({
 
     const unconfiguredContent = (
       <div className="repeater-outer">
-        {unconfiguredDesignOnly && isSelected && (
+        {(unconfiguredDesignOnly && isSelected || isRepeaterSelected) && (
           <RepeaterFloatingToolbar
             onManageItems={onOpenManageItems}
             onRepeaterSettings={onOpenRepeaterSettings}
@@ -266,9 +268,15 @@ export function Repeater({
       </div>
       </div>
     );
-    if (technicalMode || exposeContext) {
+    const showVirtualContainer =
+      (connected && !usesParentContext) ||
+      (!connected && presetContextLabel);
+    const virtualCtxLabel = !connected && presetContextLabel ? presetContextLabel : displayContextLabel;
+    const virtualInstanceLabel = !connected && presetContextLabel ? '—' : displayInstanceLabel;
+
+    if (showVirtualContainer) {
       return (
-        <div className="repeater-ctx-wrapper" data-ctx={displayContextLabel}>
+        <div className="repeater-ctx-wrapper" data-ctx={virtualCtxLabel}>
           <div
             className={`ctx-repeater ctx-repeater--header ${isRepeaterSelected ? 'ctx-repeater--selected' : ''}`}
             onClick={(e) => {
@@ -279,15 +287,13 @@ export function Repeater({
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && onSelectRepeater?.()}
           >
-            <span className="ctx-repeater__title">Container</span>
+            <span className="ctx-repeater__title">Virtual repeater container</span>
             <span className="ctx-repeater__line">
-              <strong>CTX:</strong> {displayContextLabel}{' '}
-              <strong>CTX instance:</strong> {displayInstanceLabel}.{' '}
+              <strong>CTX:</strong> {virtualCtxLabel}{' '}
+              <strong>CTX instance:</strong> {virtualInstanceLabel}.{' '}
             </span>
-            {headerAction === 'details' && onOpenContextDetails ? (
+            {headerAction === 'details' && onOpenContextDetails && connected ? (
               <ContextDetailsLink onOpenDetails={onOpenContextDetails} />
-            ) : !connected && (onOpenConnectModal ?? onConnect) ? (
-              <ContextConnectLink onConnect={() => (onOpenConnectModal ?? onConnect)?.()} />
             ) : null}
           </div>
           <div
@@ -299,6 +305,10 @@ export function Repeater({
             onClickCapture={(e) => {
               if (!onSelectInnerRepeater) return;
               if (e.target.closest('.ctx-repeater')) return;
+              /* Let toolbar buttons (Settings, Manage items) receive the click */
+              if (e.target.closest('.repeater-floating-toolbar')) return;
+              /* Let blank-slot text/image elements receive the click so they stay selectable */
+              if (e.target.closest('.repeater-blank-slot__text') || e.target.closest('.repeater-blank-slot__img-wrap')) return;
               e.stopPropagation();
               e.preventDefault();
               onSelectInnerRepeater();
@@ -421,7 +431,7 @@ export function Repeater({
     </>
   );
 
-  if (technicalMode || exposeContext) {
+  if (connected && !usesParentContext) {
     return (
       <div className="repeater-ctx-wrapper" data-ctx={displayContextLabel}>
         <div
@@ -434,15 +444,13 @@ export function Repeater({
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && onSelectRepeater?.()}
         >
-          <span className="ctx-repeater__title">Container</span>
+          <span className="ctx-repeater__title">Virtual repeater container</span>
           <span className="ctx-repeater__line">
             <strong>CTX:</strong> {displayContextLabel}{' '}
             <strong>CTX instance:</strong> {displayInstanceLabel}.{' '}
           </span>
           {headerAction === 'details' && onOpenContextDetails ? (
             <ContextDetailsLink onOpenDetails={onOpenContextDetails} />
-          ) : !connected && (onOpenConnectModal ?? onConnect) ? (
-            <ContextConnectLink onConnect={() => (onOpenConnectModal ?? onConnect)?.()} />
           ) : null}
         </div>
         <div
@@ -454,6 +462,10 @@ export function Repeater({
           onClickCapture={(e) => {
             if (!onSelectInnerRepeater) return;
             if (e.target.closest('.ctx-repeater')) return;
+            /* Let toolbar buttons (Settings, Manage items) receive the click */
+            if (e.target.closest('.repeater-floating-toolbar')) return;
+            /* Let repeater items and inner elements receive the click so they stay selectable */
+            if (e.target.closest('.recipe-card') || e.target.closest('.repeater-item-with-dropped') || e.target.closest('.repeater-chip')) return;
             e.stopPropagation();
             e.preventDefault();
             onSelectInnerRepeater();
@@ -466,34 +478,8 @@ export function Repeater({
     );
   }
 
-  /* Normal mode: don't show context */
+  /* Uses parent context: don't show container bar */
   return repeaterContent;
-}
-
-/** "Connect" link in repeater header – opens connect/replace collection modal */
-function ContextConnectLink({ onConnect }) {
-  return (
-    <button
-      type="button"
-      className="ctx-connect-link"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onConnect?.();
-      }}
-      title="Connect to CMS field"
-      aria-label="Connect to CMS field"
-    >
-      <span className="ctx-connect-link__icon" aria-hidden>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          <circle cx="7" cy="12" r="2.5" fill="none" />
-          <circle cx="17" cy="12" r="2.5" fill="none" />
-          <path d="M9.5 12 C12 12 12 6 14.5 6 C17 6 17 12 14.5 12" />
-        </svg>
-      </span>
-      Connect
-    </button>
-  );
 }
 
 /** "View details" link in repeater header – opens context instance details panel (Harmony) */
@@ -513,7 +499,7 @@ function ContextDetailsLink({ onOpenDetails }) {
   );
 }
 
-/** Format context instance (pagination, filter, sort) for technical mode display */
+/** Format context instance (pagination, filter, sort) for display */
 function formatContextInstance(instance) {
   if (!instance) return '';
   const lines = [];
@@ -644,7 +630,12 @@ function RecipeCard({ item, isSelected, selectedElementKind, onSelect, onSelectE
             ...((item.textUnderline || item.textStrikethrough) && { textDecoration: [item.textUnderline && 'underline', item.textStrikethrough && 'line-through'].filter(Boolean).join(' ') }),
             ...(item.textAlign && { textAlign: item.textAlign }),
           };
-          const content = item.boundField && item[item.boundField] != null ? String(item[item.boundField]) : (item.title ?? item.name ?? '');
+          const rawBound = item.boundField ? item[item.boundField] : undefined;
+          const content = item.boundFieldValueOverride !== undefined
+            ? String(item.boundFieldValueOverride)
+            : (item.boundField && (rawBound !== undefined && rawBound !== null)
+                ? String(rawBound)
+                : (item.title ?? item.name ?? ''));
           const inner = item.textLink ? <a href={item.textLink} className="recipe-card__name-link" onClick={(e) => e.preventDefault()}>{content}</a> : content;
           return (
             <Tag

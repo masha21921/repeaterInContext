@@ -1,14 +1,115 @@
-/* Field type icons in Use collection content panel */
-.field-type-icon {
-  flex-shrink: 0;
-  opacity: 0.85;
+/* Use Collection Content panel – white style (aligned with Page/Section settings) */
+.repeater-item-settings-panel.use-collection-content-panel {
+  background: #fff;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.field-type-icon--text { color: #8b9dc3; }
-.field-type-icon--link { color: #7ba67b; }
-.field-type-icon--number { color: #c9a86c; }
-.field-type-icon--image { color: #a67bc9; }
-.field-type-icon--array { color: #c97b9a; }
+.repeater-item-settings-panel.use-collection-content-panel .repeater-item-settings-panel__header {
+  border-bottom: 1px solid #e8eaed;
+}
+
+.repeater-item-settings-panel.use-collection-content-panel .repeater-item-settings-panel__title {
+  color: #202124;
+}
+
+.repeater-item-settings-panel.use-collection-content-panel .repeater-item-settings-panel__icon-btn {
+  color: #5f6368;
+}
+
+.repeater-item-settings-panel.use-collection-content-panel .repeater-item-settings-panel__icon-btn:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.repeater-item-settings-panel.use-collection-content-panel .repeater-item-settings-panel__label {
+  color: #5f6368;
+}
+
+/* Source and property connection (meta) */
+.use-collection-content-panel__meta {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 6px;
+}
+
+.use-collection-content-panel__meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.use-collection-content-panel__meta-row:last-child {
+  margin-bottom: 0;
+}
+
+.use-collection-content-panel__meta-label {
+  flex-shrink: 0;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.use-collection-content-panel__meta-value {
+  min-width: 0;
+  color: #202124;
+}
+
+.use-collection-content-panel__source-select {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  color: #202124;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.use-collection-content-panel__source-select:hover,
+.use-collection-content-panel__source-select:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
+
+.use-collection-content-panel__source-select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f1f3f4;
+}
+
+/* Notice when connecting to a context that is not the repeater's data source */
+.use-collection-content-panel__notice {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #5f6368;
+  background: #fef7e0;
+  border: 1px solid #f0e6c8;
+  border-radius: 6px;
+}
+
+.use-collection-content-panel__notice strong {
+  color: #202124;
+  font-weight: 600;
+}
+
+/* Field type icons in Use collection content panel */
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon {
+  opacity: 0.9;
+}
+
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon--text { color: #5f6368; }
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon--link { color: #1a73e8; }
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon--number { color: #7c4dff; }
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon--image { color: #00897b; }
+.repeater-item-settings-panel.use-collection-content-panel .field-type-icon--array { color: #e65100; }
 
 /* Custom Field dropdown */
 .use-collection-content-panel__field-wrap {
@@ -24,17 +125,42 @@
   width: 100%;
   padding: 8px 12px;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.95);
-  background: #3a3a45;
-  border: 1px solid #4a4a55;
+  color: #202124;
+  background: #fff;
+  border: 1px solid #dadce0;
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
 }
 
 .use-collection-content-panel__field-btn:hover {
-  background: #424250;
-  border-color: #5a5a65;
+  background: #f8f9fa;
+  border-color: #dadce0;
+}
+
+.use-collection-content-panel__field-btn:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+.use-collection-content-panel__field-btn--disabled,
+.use-collection-content-panel__field-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #f1f3f4;
+}
+
+.use-collection-content-panel__field-btn--disabled:hover,
+.use-collection-content-panel__field-btn:disabled:hover {
+  background: #f1f3f4;
+}
+
+.use-collection-content-panel__property-hint {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #5f6368;
+  margin-top: 2px;
 }
 
 .use-collection-content-panel__field-btn-label {
@@ -44,7 +170,7 @@
 
 .use-collection-content-panel__field-btn-arrow {
   font-size: 0.65rem;
-  opacity: 0.7;
+  color: #5f6368;
 }
 
 .use-collection-content-panel__field-list {
@@ -55,10 +181,10 @@
   margin: 4px 0 0;
   padding: 4px 0;
   list-style: none;
-  background: #2a2a30;
-  border: 1px solid #4a4a55;
+  background: #fff;
+  border: 1px solid #e8eaed;
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   max-height: 240px;
   overflow-y: auto;
   z-index: 10;
@@ -70,16 +196,17 @@
   gap: 8px;
   padding: 8px 12px;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #202124;
   cursor: pointer;
 }
 
 .use-collection-content-panel__field-option:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #f8f9fa;
 }
 
 .use-collection-content-panel__field-option--selected {
-  background: rgba(26, 115, 232, 0.15);
+  background: #e8f0fe;
+  color: #1a73e8;
 }
 
 .use-collection-content-panel__field-option span:first-of-type {
@@ -91,4 +218,22 @@
   flex-shrink: 0;
   color: #1a73e8;
   font-weight: 600;
+}
+
+.use-collection-content-panel__preview {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.use-collection-content-panel__preview-label {
+  color: #5f6368;
+  margin-right: 0.25rem;
+}
+
+.use-collection-content-panel__preview-value {
+  color: #202124;
+  word-break: break-word;
 }

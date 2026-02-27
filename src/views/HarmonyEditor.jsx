@@ -19,7 +19,8 @@ import { FilterModal } from '../components/FilterModal';
 import { EmptySettingsPanel } from '../components/EmptySettingsPanel';
 import { RepeaterItemElementPanel } from '../components/RepeaterItemElementPanel';
 import { applyFilterRules } from '../utils/filterRules';
-import { recipesCollectionItems, unconfiguredRepeaterItems, availableContexts, connectModalPresetIds, getDefaultItemBindingsForContext } from '../data/demoData';
+import { recipesCollectionItems, unconfiguredRepeaterItems, availableContexts, connectModalPresetIds, getDefaultItemBindingsForContext, getFilterFieldsForContext, defaultSortRules } from '../data/demoData';
+import { applySortRules } from '../utils/sortRules';
 import './Editor.css';
 
 function createComponent(type) {
@@ -34,7 +35,7 @@ function createComponent(type) {
 }
 
 const HARMONY_ADDABLE_COMPONENTS = [
-  { type: 'repeater', label: 'Design preset 1', group: 'Repeaters' },
+  { type: 'repeater', label: 'Design preset 1 (Team)', group: 'Repeaters' },
   { type: 'text', label: 'Text' },
   { type: 'image', label: 'Image' },
 ];
@@ -61,8 +62,8 @@ export function HarmonyEditor() {
   const [filterModalTarget, setFilterModalTarget] = useState(null);
   const [contextDetailsTarget, setContextDetailsTarget] = useState(null);
   const [connectorPanelTarget, setConnectorPanelTarget] = useState(null);
+  const [connectorPanelSourceContextId, setConnectorPanelSourceContextId] = useState(null);
   const [repeaterSettingsPanelOpen, setRepeaterSettingsPanelOpen] = useState(false);
-  const [technicalMode, setTechnicalMode] = useState(false);
   const [presetUsedIds, setPresetUsedIds] = useState([]);
   const settingsAsideRef = useRef(null);
   const scrollToSettingsPanel = useCallback(() => {
@@ -115,28 +116,41 @@ export function HarmonyEditor() {
     section2Components.some((c) => c.type === 'repeater' && c.connected) ||
     section3Components.some((c) => c.type === 'repeater' && c.connected);
 
-  /** Unique context instance label per repeater: "CollectionName 1", "CollectionName 2", ... */
+  /** Unique context instance label per context usage (page, sections, repeaters): "CollectionName 1", "CollectionName 2", ... */
   const contextInstanceLabelMap = useMemo(() => {
     const map = {};
     const countByContextId = {};
-    const sections = [
+    const assign = (contextId, key) => {
+      if (!contextId) return;
+      const ctx = availableContexts.find((c) => c.id === contextId);
+      const label = ctx?.label ?? contextId;
+      countByContextId[contextId] = (countByContextId[contextId] ?? 0) + 1;
+      const n = countByContextId[contextId];
+      map[key] = `${label} ${n}`;
+    };
+    assign(pageContextId, 'page');
+    assign(sectionContextIds.section1, 'section1');
+    assign(sectionContextIds.section2, 'section2');
+    assign(sectionContextIds.section3, 'section3');
+    const sectionList = [
       ['section1', section1Components],
       ['section2', section2Components],
       ['section3', section3Components],
     ];
-    sections.forEach(([sectionId, comps]) => {
+    sectionList.forEach(([sectionId, comps]) => {
       comps.forEach((comp) => {
-        if (comp.type === 'repeater' && comp.assignedContextId) {
-          const ctx = availableContexts.find((c) => c.id === comp.assignedContextId);
-          const label = ctx?.label ?? comp.assignedContextId;
-          countByContextId[comp.assignedContextId] = (countByContextId[comp.assignedContextId] ?? 0) + 1;
-          const n = countByContextId[comp.assignedContextId];
-          map[`${sectionId}-${comp.id}`] = `${label} ${n}`;
+        if (comp.type !== 'repeater' || !comp.assignedContextId) return;
+        const parentCtxId = sectionContextIds[sectionId] || pageContextId;
+        if (parentCtxId && comp.assignedContextId === parentCtxId) {
+          const parentKey = sectionContextIds[sectionId] ? sectionId : 'page';
+          map[`${sectionId}-${comp.id}`] = map[parentKey] ?? (availableContexts.find((c) => c.id === parentCtxId)?.label ?? parentCtxId);
+        } else {
+          assign(comp.assignedContextId, `${sectionId}-${comp.id}`);
         }
       });
     });
     return map;
-  }, [section1Components, section2Components, section3Components, availableContexts]);
+  }, [pageContextId, sectionContextIds, section1Components, section2Components, section3Components, availableContexts]);
 
   const getSetBySection = useCallback((sectionId) => {
     switch (sectionId) {
@@ -199,7 +213,7 @@ export function HarmonyEditor() {
   }, [getSetBySection]);
 
   useEffect(() => {
-    if (selected?.type !== 'component') setRepeaterSettingsPanelOpen(false);
+    if (selected?.type !== 'component' && selected?.type !== 'repeater') setRepeaterSettingsPanelOpen(false);
   }, [selected?.type]);
 
   useEffect(() => {
@@ -305,7 +319,7 @@ export function HarmonyEditor() {
   }, [section1Components, section2Components, section3Components]);
 
   const selectedRepeaterComp =
-    (selected?.type === 'component' || selected?.type === 'repeaterItem') && selected?.sectionId && selected?.componentId
+    (selected?.type === 'component' || selected?.type === 'repeaterItem' || selected?.type === 'repeater') && selected?.sectionId && selected?.componentId
       ? getComponentsBySection(selected.sectionId)?.find((c) => c.id === selected.componentId)
       : null;
 
@@ -355,6 +369,7 @@ export function HarmonyEditor() {
       list = list.filter((i) => (i.title ?? i.name ?? '').toLowerCase().includes(q));
     }
     list = [...list];
+    if (sortOption === 'default') list = applySortRules(list, defaultSortRules);
     if (sortOption === 'name') list.sort((a, b) => (a.title ?? a.name ?? '').localeCompare(b.title ?? b.name ?? ''));
     if (sortOption === 'nameDesc') list.sort((a, b) => (b.title ?? b.name ?? '').localeCompare(a.title ?? a.name ?? ''));
     return list;
@@ -378,11 +393,11 @@ export function HarmonyEditor() {
           selectedElementKind={selected?.type === 'repeaterItem' && selected.sectionId === sectionId && selected.componentId === comp.id ? selected.elementKind : null}
           onSelectItem={(itemId) => selectRepeaterItem(sectionId, comp.id, itemId)}
           onSelectItemElement={(itemId, kind) => selectRepeaterItem(sectionId, comp.id, itemId, kind)}
-          isSelected={(selected?.type === 'component' || selected?.type === 'repeaterItem') && selected?.sectionId === sectionId && selected?.componentId === comp.id}
+          isSelected={(selected?.type === 'component' || selected?.type === 'repeaterItem' || selected?.type === 'repeater') && selected?.sectionId === sectionId && selected?.componentId === comp.id}
           onOpenConnectModal={() => openConnectModal(sectionId, comp.id)}
           onOpenManageItems={() => openManageItems(sectionId, comp.id)}
           onOpenRepeaterSettings={openRepeaterSettings}
-          technicalMode={technicalMode}
+          usesParentContext={!!(comp.assignedContextId && (comp.assignedContextId === sectionContextIds[sectionId] || comp.assignedContextId === pageContextId))}
           contextLabel={ctx?.label}
           contextInstanceLabel={contextInstanceLabelMap[`${sectionId}-${comp.id}`]}
           contextInstance={{
@@ -393,9 +408,9 @@ export function HarmonyEditor() {
           hasActiveFilter={(comp.filterRules?.length ?? 0) > 0}
           headerAction="details"
           onOpenContextDetails={() => openContextDetails(sectionId, comp.id)}
-          isRepeaterSelected={technicalMode && selected?.type === 'repeater' && selected?.sectionId === sectionId && selected?.componentId === comp.id}
-          onSelectRepeater={technicalMode ? () => selectRepeater(sectionId, comp.id) : undefined}
-          onSelectInnerRepeater={technicalMode ? () => selectComponent(sectionId, comp.id) : undefined}
+          isRepeaterSelected={selected?.type === 'repeater' && selected?.sectionId === sectionId && selected?.componentId === comp.id}
+          onSelectRepeater={() => selectRepeater(sectionId, comp.id)}
+          onSelectInnerRepeater={() => selectComponent(sectionId, comp.id)}
           unconfiguredRibbonDescription="Connect a collection to show this container on your live site."
           unconfiguredRibbonButtonLabel="Connect collection"
           droppedElements={comp.droppedElements}
@@ -442,7 +457,7 @@ export function HarmonyEditor() {
       );
     }
     return null;
-  }, [getContextById, itemsForContext, applyFilterAndSort, selected, technicalMode, openConnectModal, selectRepeater, selectRepeaterItem, openManageItems, openRepeaterSettings, selectComponent, updateTextContent, updateImageContent, addDroppedElementToRepeater, scrollToSettingsPanel]);
+  }, [getContextById, itemsForContext, applyFilterAndSort, selected, openConnectModal, selectRepeater, selectRepeaterItem, openManageItems, openRepeaterSettings, selectComponent, updateTextContent, updateImageContent, addDroppedElementToRepeater, scrollToSettingsPanel]);
 
   function renderSettingsPanel() {
     if (contextDetailsTarget) {
@@ -464,20 +479,36 @@ export function HarmonyEditor() {
       const bindProperty = connectorPanelTarget.bindProperty ?? 'text';
       const fieldKey = fieldKeyByBindProperty(bindProperty);
       const isRepeaterItem = connectorPanelTarget.itemId != null;
-      if (isRepeaterItem && (!comp?.assignedContextId || !comp?.connected)) {
-        return (
-          <EmptySettingsPanel
-            title="Connect to CMS field"
-            message="There is no context to connect to. Connect the container to a collection in the container settings first."
-            onClose={() => setConnectorPanelTarget(null)}
-          />
-        );
-      }
-      const ctx = isRepeaterItem && comp?.assignedContextId
-        ? getContextById(comp.assignedContextId)
-        : (connectorPanelTarget.sectionId && (sectionContextIds[connectorPanelTarget.sectionId] || pageContextId))
-          ? getContextById(sectionContextIds[connectorPanelTarget.sectionId] || pageContextId)
-          : null;
+      const sectionId = connectorPanelTarget.sectionId;
+      const sectionCtxId = sectionId ? sectionContextIds[sectionId] : null;
+      const parentContextId = sectionId && (sectionCtxId || pageContextId) ? (sectionCtxId || pageContextId) : null;
+      const repeaterContextId = isRepeaterItem ? (comp?.assignedContextId ?? null) : null;
+      const repeaterContextLabel = repeaterContextId ? getContextById(repeaterContextId)?.label : null;
+      const sourceOptions = isRepeaterItem
+        ? (() => {
+            const seen = new Set();
+            const list = [];
+            if (repeaterContextId) {
+              const rCtx = getContextById(repeaterContextId);
+              list.push({ contextId: repeaterContextId, label: rCtx?.label ?? repeaterContextId });
+              seen.add(repeaterContextId);
+            }
+            if (sectionCtxId && !seen.has(sectionCtxId)) {
+              const sCtx = getContextById(sectionCtxId);
+              list.push({ contextId: sectionCtxId, label: sCtx?.label ?? sectionCtxId });
+              seen.add(sectionCtxId);
+            }
+            if (pageContextId && !seen.has(pageContextId)) {
+              const pCtx = getContextById(pageContextId);
+              list.push({ contextId: pageContextId, label: pCtx?.label ?? pageContextId });
+            }
+            return list.length > 0 ? list : [{ contextId: '', label: 'No collection available' }];
+          })()
+        : null;
+      const defaultCtxId = isRepeaterItem && repeaterContextId ? repeaterContextId : parentContextId;
+      const selectedSourceContextId = connectorPanelSourceContextId ?? defaultCtxId ?? sourceOptions?.[0]?.contextId ?? '';
+      const ctx = selectedSourceContextId ? getContextById(selectedSourceContextId) : null;
+      const sourceLabel = ctx ? (ctx.label ?? '—') : '—';
       const item = isRepeaterItem && selected?.type === 'repeaterItem' && selected.sectionId === connectorPanelTarget.sectionId && selected.componentId === connectorPanelTarget.componentId && selected.itemId === connectorPanelTarget.itemId
         ? selectedRepeaterItem
         : null;
@@ -485,6 +516,7 @@ export function HarmonyEditor() {
       const onSelectField = isRepeaterItem
         ? (value) => updateRepeaterItemBindingForAll(connectorPanelTarget.sectionId, connectorPanelTarget.componentId, fieldKey, value)
         : (value) => updateComponentBinding(connectorPanelTarget.sectionId, connectorPanelTarget.componentId, bindProperty, value);
+      const hasRealSourceOptions = sourceOptions?.length > 0 && sourceOptions.some((o) => o.contextId !== '');
       return (
         <UseCollectionContentPanel
           collectionLabel={ctx?.label ?? 'Collection'}
@@ -493,20 +525,26 @@ export function HarmonyEditor() {
           bindProperty={bindProperty}
           selectedField={selectedField}
           onSelectField={onSelectField}
-          onClose={() => setConnectorPanelTarget(null)}
+          onClose={() => { setConnectorPanelTarget(null); setConnectorPanelSourceContextId(null); }}
+          repeaterAssignedContextId={isRepeaterItem ? repeaterContextId : undefined}
+          repeaterContextLabel={isRepeaterItem ? repeaterContextLabel : undefined}
+          sourceLabel={hasRealSourceOptions ? undefined : sourceLabel}
+          sourceOptions={isRepeaterItem ? sourceOptions : undefined}
+          selectedSourceContextId={isRepeaterItem ? selectedSourceContextId : undefined}
+          onSourceChange={isRepeaterItem ? (id) => setConnectorPanelSourceContextId(id || null) : undefined}
+          sourceSelectAriaLabel="Source collection"
         />
       );
     }
-    if (selected?.type === 'repeater') {
-      return <EmptySettingsPanel message="Container selected. Use the container Settings to configure." />;
-    }
     if (!selected) return <EmptySettingsPanel />;
     if (selected.type === 'page') {
+      const pageCtx = pageContextId ? availableContexts.find((c) => c.id === pageContextId) : null;
       return (
         <PageSettingsPanel
-          availableContexts={availableContexts}
           selectedContextId={pageContextId}
-          onSelectContext={updatePageContext}
+          contextLabel={pageCtx?.label ?? ''}
+          onOpenConnectModal={() => setConnectContextTarget({ type: 'page' })}
+          onClose={() => setSelected(null)}
         />
       );
     }
@@ -567,13 +605,13 @@ export function HarmonyEditor() {
         />
       );
     }
-    if (selected.type === 'component' && selectedRepeaterComp?.type === 'repeater' && !selectedRepeaterComp.connected) {
+    if ((selected.type === 'component' || selected.type === 'repeater') && selectedRepeaterComp?.type === 'repeater' && !selectedRepeaterComp.connected) {
       return <EmptySettingsPanel message="Connect a collection to configure this container." />;
     }
-    if (selected.type === 'component' && selectedRepeaterComp?.type === 'repeater' && selectedRepeaterComp?.connected && !repeaterSettingsPanelOpen) {
+    if ((selected.type === 'component' || selected.type === 'repeater') && selectedRepeaterComp?.type === 'repeater' && selectedRepeaterComp?.connected && !repeaterSettingsPanelOpen) {
       return <EmptySettingsPanel message="Click Settings to configure this container." />;
     }
-    if (selected.type === 'component' && selectedRepeaterComp?.type !== 'repeater') {
+    if ((selected.type === 'component' || selected.type === 'repeater') && selectedRepeaterComp?.type !== 'repeater') {
       return <EmptySettingsPanel />;
     }
     const assignedCtx = selectedRepeaterComp?.assignedContextId
@@ -610,7 +648,7 @@ export function HarmonyEditor() {
         onClose={closeConnectModal}
         presetUsedIds={presetUsedIds}
         mode={connectModalTarget?.mode ?? 'connect'}
-        allowedContextIds={connectModalTarget?.mode === 'replace' ? contextIdsOnPage : undefined}
+        allowedContextIds={undefined}
         onConnect={(contextId) => {
           if (connectModalTarget && contextId) {
             setComponentContext(connectModalTarget.sectionId, connectModalTarget.componentId, contextId);
@@ -619,7 +657,13 @@ export function HarmonyEditor() {
             setRepeaterItemOverrides((prev) => {
               const next = { ...prev };
               (ctx?.items ?? []).forEach((item) => {
-                next[item.id] = { ...defaults, ...(prev[item.id] || {}) };
+                const existing = prev[item.id] || {};
+                const merged = {};
+                Object.keys(defaults).forEach((key) => {
+                  const current = existing[key];
+                  merged[key] = (current != null && current !== '') ? current : defaults[key];
+                });
+                next[item.id] = { ...existing, ...merged };
               });
               return next;
             });
@@ -632,13 +676,16 @@ export function HarmonyEditor() {
       <ConnectContextModal
         isOpen={connectContextTarget !== null}
         onClose={() => setConnectContextTarget(null)}
+        connectTarget={connectContextTarget}
         targetLabel={connectContextTarget?.type === 'page' ? 'this page' : connectContextTarget?.type === 'section' ? 'this section' : 'this page'}
-        onConnect={(contextId) => {
-          if (!connectContextTarget || !contextId) return;
-          if (connectContextTarget.type === 'page') {
+        onConnect={(contextId, target) => {
+          if (!contextId) return;
+          const t = target ?? connectContextTarget;
+          if (!t) return;
+          if (t.type === 'page') {
             updatePageContext(contextId);
-          } else if (connectContextTarget.type === 'section') {
-            updateSectionContext(connectContextTarget.sectionId, contextId);
+          } else if (t.type === 'section') {
+            updateSectionContext(t.sectionId, contextId);
           }
           setConnectContextTarget(null);
         }}
@@ -650,6 +697,13 @@ export function HarmonyEditor() {
           filterModalTarget
             ? getComponentsBySection(filterModalTarget.sectionId)?.find((c) => c.id === filterModalTarget.componentId)?.filterRules ?? []
             : []
+        }
+        availableFields={
+          filterModalTarget
+            ? getFilterFieldsForContext(
+                getComponentsBySection(filterModalTarget.sectionId)?.find((c) => c.id === filterModalTarget.componentId)?.assignedContextId
+              )
+            : undefined
         }
         onApply={(rules) => {
           if (filterModalTarget) {
@@ -663,7 +717,7 @@ export function HarmonyEditor() {
         const ctx = comp?.assignedContextId ? getContextById(comp.assignedContextId) : null;
         const rawItems = ctx ? itemsForContext(comp.assignedContextId) : [];
         const filtered = applyFilterRules(rawItems, comp?.filterRules ?? []);
-        const sorted = [...filtered];
+        const sorted = comp?.sortOption === 'default' ? applySortRules([...filtered], defaultSortRules) : [...filtered];
         if (comp?.sortOption === 'name') sorted.sort((a, b) => (a.title ?? a.name ?? '').localeCompare(b.title ?? b.name ?? ''));
         if (comp?.sortOption === 'nameDesc') sorted.sort((a, b) => (b.title ?? b.name ?? '').localeCompare(a.title ?? a.name ?? ''));
         return (
@@ -689,14 +743,6 @@ export function HarmonyEditor() {
         <p className="editor-desc">
           Container connected to <strong>context</strong> → represented as a <strong>CMS collection</strong>.
         </p>
-        <label className="editor-technical-mode">
-          <input
-            type="checkbox"
-            checked={technicalMode}
-            onChange={(e) => setTechnicalMode(e.target.checked)}
-          />
-          Technical mode
-        </label>
       </header>
 
       <div className="editor-workspace">
@@ -705,10 +751,7 @@ export function HarmonyEditor() {
             className="stage--harmony"
             isPageSelected={selected?.type === 'page'}
             onSelectPage={selectPage}
-            technicalMode={technicalMode}
-            pageContextLabel={pageContextId ? getContextById(pageContextId)?.label : null}
-            pageContextInstanceLabel={pageContextId ? (getContextById(pageContextId)?.label ?? '—') : '—'}
-            showPageContextLabel={false}
+            showPageHeader={false}
           >
             <Section
               sectionId="section1"
@@ -719,12 +762,11 @@ export function HarmonyEditor() {
               addableComponents={HARMONY_ADDABLE_COMPONENTS}
               onRemoveComponent={removeComponent}
               isSectionSelected={selected?.type === 'section' && selected.sectionId === 'section1'}
-              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem') && selected?.sectionId === 'section1' ? selected.componentId : null}
+              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem' || selected?.type === 'repeater') && selected?.sectionId === 'section1' ? selected.componentId : null}
               onSelectSection={selectSection}
               onSelectComponent={selectComponent}
-              technicalMode={technicalMode}
               contextLabel={sectionContextIds.section1 ? getContextById(sectionContextIds.section1)?.label : null}
-              contextInstanceLabel={sectionContextIds.section1 ? (getContextById(sectionContextIds.section1)?.label ?? '—') : '—'}
+              contextInstanceLabel={contextInstanceLabelMap['section1'] ?? '—'}
               showContextLabel={false}
             />
             <Section
@@ -738,13 +780,12 @@ export function HarmonyEditor() {
               onRemoveComponent={removeComponent}
               isSectionSelected={selected?.type === 'section' && selected.sectionId === 'section2'}
               isContentTitleSelected={selected?.type === 'contentTitle' && selected.sectionId === 'section2'}
-              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem') && selected?.sectionId === 'section2' ? selected.componentId : null}
+              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem' || selected?.type === 'repeater') && selected?.sectionId === 'section2' ? selected.componentId : null}
               onSelectSection={selectSection}
               onSelectContentTitle={selectContentTitle}
               onSelectComponent={selectComponent}
-              technicalMode={technicalMode}
               contextLabel={sectionContextIds.section2 ? getContextById(sectionContextIds.section2)?.label : null}
-              contextInstanceLabel={sectionContextIds.section2 ? (getContextById(sectionContextIds.section2)?.label ?? '—') : '—'}
+              contextInstanceLabel={contextInstanceLabelMap['section2'] ?? '—'}
               showContextLabel={false}
             />
             <Section
@@ -756,12 +797,11 @@ export function HarmonyEditor() {
               addableComponents={HARMONY_ADDABLE_COMPONENTS}
               onRemoveComponent={removeComponent}
               isSectionSelected={selected?.type === 'section' && selected.sectionId === 'section3'}
-              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem') && selected?.sectionId === 'section3' ? selected.componentId : null}
+              selectedComponentId={(selected?.type === 'component' || selected?.type === 'repeaterItem' || selected?.type === 'repeater') && selected?.sectionId === 'section3' ? selected.componentId : null}
               onSelectSection={selectSection}
               onSelectComponent={selectComponent}
-              technicalMode={technicalMode}
               contextLabel={sectionContextIds.section3 ? getContextById(sectionContextIds.section3)?.label : null}
-              contextInstanceLabel={sectionContextIds.section3 ? (getContextById(sectionContextIds.section3)?.label ?? '—') : '—'}
+              contextInstanceLabel={contextInstanceLabelMap['section3'] ?? '—'}
               showContextLabel={false}
             />
           </Stage>

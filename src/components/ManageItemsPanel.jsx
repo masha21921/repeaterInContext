@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { CollectionPreviewModal } from './CollectionPreviewModal';
+import { getSortSummary } from '../utils/sortRules';
 import './ManageItemsPanel.css';
 
 /**
  * Manage Items panel: list of repeater items with Sort and Filter options.
  * Opens from "Manage Items" link in Repeater Settings.
+ * Sort: when onOpenSort is provided, "Edit sort" opens the Sort modal; otherwise items are already sorted by parent.
  */
 export function ManageItemsPanel({
   isOpen,
@@ -12,8 +14,10 @@ export function ManageItemsPanel({
   collectionLabel,
   collectionId,
   items = [],
-  sortOption = 'default',
+  sortRules = [],
   onSortChange,
+  onOpenSort,
+  availableSortFields = [],
   filterQuery = '',
   onFilterChange,
   onOpenFilter,
@@ -28,18 +32,8 @@ export function ManageItemsPanel({
   const [sortOpen, setSortOpen] = useState(false);
   const [showCollectionPreview, setShowCollectionPreview] = useState(false);
 
-  const displayItems = useMemo(() => {
-    if (onOpenFilter) return items;
-    let list = items;
-    if (filterQuery && filterQuery.trim()) {
-      const q = filterQuery.trim().toLowerCase();
-      list = list.filter((i) => (i.title ?? i.name ?? '').toLowerCase().includes(q));
-    }
-    list = [...list];
-    if (sortOption === 'name') list.sort((a, b) => (a.title ?? a.name ?? '').localeCompare(b.title ?? b.name ?? ''));
-    if (sortOption === 'nameDesc') list.sort((a, b) => (b.title ?? b.name ?? '').localeCompare(a.title ?? a.name ?? ''));
-    return list;
-  }, [items, sortOption, filterQuery, onOpenFilter]);
+  const sortSummary = getSortSummary(sortRules, availableSortFields);
+  const displayItems = useMemo(() => items, [items]);
 
   if (!isOpen) return null;
 
@@ -117,9 +111,19 @@ export function ManageItemsPanel({
                 </button>
                 {sortOpen && (
                   <div className="manage-items-panel__dropdown">
-                    <button type="button" onClick={() => { onSortChange?.('default'); setSortOpen(false); }}>Default order</button>
-                    <button type="button" onClick={() => { onSortChange?.('name'); setSortOpen(false); }}>Name A–Z</button>
-                    <button type="button" onClick={() => { onSortChange?.('nameDesc'); setSortOpen(false); }}>Name Z–A</button>
+                    <p className="manage-items-panel__sort-summary">{sortSummary}</p>
+                    {onOpenSort && (
+                      <button type="button" className="manage-items-panel__edit-sort-btn" onClick={() => { onOpenSort(); setSortOpen(false); }}>
+                        Edit sort
+                      </button>
+                    )}
+                    {!onOpenSort && onSortChange && (
+                      <>
+                        <button type="button" onClick={() => { onSortChange?.([]); setSortOpen(false); }}>Default order</button>
+                        <button type="button" onClick={() => { onSortChange?.([{ fieldId: 'title', direction: 'asc' }]); setSortOpen(false); }}>Name A–Z</button>
+                        <button type="button" onClick={() => { onSortChange?.([{ fieldId: 'title', direction: 'desc' }]); setSortOpen(false); }}>Name Z–A</button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

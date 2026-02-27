@@ -5,7 +5,7 @@ import './ComponentWrapper.css';
  * When draggablePayload is set (e.g. for Text/Image), the component can be dragged onto a repeater.
  * Delete is done via settings panel when component is selected.
  */
-export function ComponentWrapper({ children, isSelected, onSelect, draggablePayload }) {
+export function ComponentWrapper({ children, isSelected, onSelect, draggablePayload, connected }) {
   const handleDragStart = (e) => {
     if (!draggablePayload) return;
     e.dataTransfer.setData('application/x-repeater-element', JSON.stringify(draggablePayload));
@@ -15,7 +15,7 @@ export function ComponentWrapper({ children, isSelected, onSelect, draggablePayl
 
   return (
     <div
-      className={`component-wrapper ${isSelected ? 'component-wrapper--selected' : ''} ${draggablePayload ? 'component-wrapper--draggable' : ''}`}
+      className={`component-wrapper ${isSelected ? 'component-wrapper--selected' : ''} ${isSelected && connected ? 'component-wrapper--connected' : ''} ${draggablePayload ? 'component-wrapper--draggable' : ''}`}
       draggable={!!draggablePayload}
       onDragStart={draggablePayload ? handleDragStart : undefined}
       onClick={(e) => {
