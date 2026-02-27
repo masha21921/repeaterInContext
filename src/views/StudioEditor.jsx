@@ -884,7 +884,20 @@ export function StudioEditor() {
           sourceLabel={hasRealSourceOptions ? undefined : sourceLabel}
           sourceOptions={isRepeaterItem ? sourceOptions : undefined}
           selectedSourceContextId={isRepeaterItem ? selectedSourceContextId : undefined}
-          onSourceChange={isRepeaterItem ? (id) => setConnectorPanelSourceContextId(id || null) : undefined}
+          onSourceChange={isRepeaterItem
+            ? (id) => {
+                setConnectorPanelSourceContextId(id || null);
+                if (id == null || id === '') {
+                  updateRepeaterItemBindingForAll(
+                    connectorPanelTarget.sectionId,
+                    connectorPanelTarget.componentId,
+                    fieldKey,
+                    '',
+                    { valueOverride: 'text' }
+                  );
+                }
+              }
+            : undefined}
           fallbackContextIdForLabel={isRepeaterItem ? repeaterContextId : undefined}
           fallbackContextTypeForLabel={isRepeaterItem ? (repeaterCtx?.type ?? null) : undefined}
         />

@@ -199,7 +199,9 @@ export function ConnectContextModal({
       <div className="connect-context-modal" onClick={(e) => e.stopPropagation()}>
         <div className="connect-context-modal__header">
           <h2 id="connect-context-modal-title" className="connect-context-modal__title">
-            Select context
+            {suggestedContext && (connectTarget?.mode !== 'replace' || !selectedContextId)
+              ? `Select context — ${suggestedContext.label}`
+              : 'Select context'}
           </h2>
           <div className="connect-context-modal__header-actions">
             <button type="button" className="connect-context-modal__help" aria-label="Help">?</button>
@@ -229,7 +231,7 @@ export function ConnectContextModal({
         <div className="connect-context-modal__body">
           {isRepeaterMode ? (
             <>
-              {suggestedContext && (
+              {suggestedContext && (connectTarget?.mode !== 'replace' || !selectedContextId) && (
                 <section className="connect-context-modal__section connect-context-modal__section--suggested" aria-labelledby="connect-context-suggested-head">
                   <h3 id="connect-context-suggested-head" className="connect-context-modal__section-title">
                     Suggested for this design
