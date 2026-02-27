@@ -48,7 +48,7 @@ This document describes the repeater-context demo: behavior, editors, and main f
 - **Repeater:** Connect via Repeater settings or the virtual container bar.
   - **Replace** opens the Connect Context modal.
   - **Disconnect** in the modal clears the repeater’s context and resets it to the blank state.
-- **Suggested for this design:** For preset repeaters (e.g. Real estate), a suggested context can be shown; selecting it “creates” that context on the page and it appears in the CMS list.
+- **Suggested for this design:** Shown only when **connecting** (not when using Replace). For preset repeaters (e.g. Real estate), a suggested context is shown; selecting it “creates” that context on the page and it appears in the CMS list.
 - **Available from parent level:** Contexts already used on the page or in the same section.
 - **Add context to the repeater:** Choose a new context (e.g. from CMS); it becomes a new instance for that repeater.
 
@@ -57,6 +57,7 @@ This document describes the repeater-context demo: behavior, editors, and main f
 ## Repeater settings (panel)
 
 - **Display:** List of items, Tags, Media gallery, or Function.
+- When the repeater has a context, the **Pagination, filter & sort** section shows the actual values (items per load, filter, sort) for that context instance (Studio).
 - **Tags / Media:** “Add function to apply filter or sort”; Load more and full “Pagination, filter & sort” section can be hidden when not applicable.
 - **Function:** “Pagination, filter & sort” section is hidden.
 - **Manage items:** Opens the Manage Items panel (filter, sort, list of items).
@@ -66,7 +67,8 @@ This document describes the repeater-context demo: behavior, editors, and main f
 ## Use collection content (connector panel)
 
 - Binds a repeater item element (e.g. text) to a **source** (e.g. repeater context or parent context) and a **property** (field).
-- If the selected source is **not** the repeater’s context, a notice explains that the text will show the same content for all items.
+- If the **source is disconnected** (Select source), the content becomes **static**: the same for all items, default **“text”**.
+- If the selected source is **not** the repeater’s context (but is connected), a notice explains that the text will show the same content for all items (dynamic but uniform).
 - Default text when not connected: **“text”**.
 
 ---
