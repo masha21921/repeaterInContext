@@ -313,6 +313,8 @@ export function Repeater({
               if (e.target.closest('.ctx-repeater')) return;
               /* Let toolbar buttons (Settings, Manage items) receive the click */
               if (e.target.closest('.repeater-floating-toolbar')) return;
+              /* Let blank-slot column receive the click so BlankRepeaterSlotPanel can open */
+              if (e.target.closest('.repeater-blank-layout__col')) return;
               /* Let blank-slot text/image elements receive the click so they stay selectable */
               if (e.target.closest('.repeater-blank-slot__text') || e.target.closest('.repeater-blank-slot__img-wrap')) return;
               e.stopPropagation();
