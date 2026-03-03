@@ -2,7 +2,7 @@
 
 Proof-of-concept: **one Repeater component** in two editors (**Harmony** and **Studio**), with **context assigned to the repeater itself** (no virtual container bar). Same component, different experience in each sub-tab.
 
-- **Harmony:** Repeater → **CMS collection** (e.g. Offices, Recipes). Source in “Use collection content” is the collection name only; Settings, Manage items, and View details open from the repeater floating toolbar.
+- **Harmony:** Repeater → **CMS collection** (e.g. Offices, Recipes). Source in “Use collection content” is the collection name only; Settings and Manage items open from the repeater floating toolbar; a technical “CTX instance” link below the repeater opens context instance details (filter, sort, page size).
 - **Studio:** Repeater → **design presets** (Blank, Team, Real estate) or context from page/section. Connect Context modal: “Suggested for this design,” “Available from parent level,” “Add context.” Disconnect sends the repeater to blank state. Selection: blue when not connected, pink when connected.
 
 ## Run
@@ -36,6 +36,8 @@ Two workflows are available. **Recommended:** use the **gh-pages branch** (no �
 3. Site URL: **https://masha21921.github.io/repeaterInContext/**
 
 If you see **404** or **no workflow runs**: use Option A and ensure the **“Build and push to gh-pages”** workflow has run at least once (Actions → select it → Run workflow).
+
+**Blank page or broken site?** In **Settings → Pages**, under **Build and deployment**, set **Branch** to **`gh-pages`** (not `main`). If the branch is `main`, GitHub serves the source code, which has no built `assets/` folder, so the app never loads.
 
 ## Structure
 

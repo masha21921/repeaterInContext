@@ -80,6 +80,29 @@
   display: none;
 }
 
+/* Technical: link to view context instance (filter, sort, page size). Not part of main user flow. */
+.repeater-ctx-technical {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #dadce0;
+}
+
+.repeater-ctx-technical__btn {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #5f6368;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.repeater-ctx-technical__btn:hover {
+  color: #1967d2;
+}
+
 .ctx-repeater__line {
   font-size: 0.8rem;
   font-weight: 500;

@@ -256,7 +256,13 @@ export function Repeater({
             onConnect={onOpenConnectModal ?? onConnect}
           />
         )}
-      <div className={`repeater repeater--canvas repeater--unconfigured ${showCards ? 'repeater--cards' : ''} ${preset === 'blank' ? 'repeater--blank' : ''}`} data-context-type={type}>
+      <div
+        className={`repeater repeater--canvas repeater--unconfigured ${showCards ? 'repeater--cards' : ''} ${preset === 'blank' ? 'repeater--blank' : ''} ${isDragOver ? 'repeater--drop-target' : ''}`}
+        data-context-type={type}
+        onDragOver={onDropElement ? handleDragOver : undefined}
+        onDragLeave={onDropElement ? handleDragLeave : undefined}
+        onDrop={onDropElement ? handleDrop : undefined}
+      >
         {ribbonContent}
         {unconfiguredDesignOnly ? (
           unconfiguredInner
@@ -427,6 +433,23 @@ export function Repeater({
         </>
       )}
         </div>
+        {headerAction === 'details' && onOpenContextDetails && connected && (
+          <div className="repeater-ctx-technical" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="repeater-ctx-technical__btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenContextDetails?.();
+              }}
+              title="Technical: this repeater holds a context instance (filter, sort, page size). Each repeater has its own instance."
+              aria-label="View context instance details (technical)"
+            >
+              CTX instance
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
@@ -449,9 +472,6 @@ export function Repeater({
             <strong>CTX:</strong> {displayContextLabel}{' '}
             <strong>CTX instance:</strong> {displayInstanceLabel}.{' '}
           </span>
-          {headerAction === 'details' && onOpenContextDetails ? (
-            <ContextDetailsLink onOpenDetails={onOpenContextDetails} />
-          ) : null}
         </div>
         <div
           className="repeater-ctx-content"
@@ -480,23 +500,6 @@ export function Repeater({
 
   /* Uses parent context: don't show container bar */
   return repeaterContent;
-}
-
-/** "View details" link in repeater header – opens context instance details panel (Harmony) */
-function ContextDetailsLink({ onOpenDetails }) {
-  return (
-    <button
-      type="button"
-      className="ctx-connect-link"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onOpenDetails?.();
-      }}
-    >
-      View details
-    </button>
-  );
 }
 
 /** Format context instance (pagination, filter, sort) for display */

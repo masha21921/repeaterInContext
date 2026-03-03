@@ -396,11 +396,24 @@ export function StudioEditor() {
   const addDroppedElementToRepeater = useCallback((sectionId, componentId, payload) => {
     const setter = getSetBySection(sectionId);
     setter((prev) =>
-      prev.map((c) =>
-        c.id === componentId && c.type === 'repeater'
-          ? { ...c, droppedElements: [...(c.droppedElements || []), { type: payload.type, content: payload.content, src: payload.src, alt: payload.alt }] }
-          : c
-      )
+      prev.map((c) => {
+        if (c.id !== componentId || c.type !== 'repeater') return c;
+        const isBlank = c.preset === 'blank' || !c.connected;
+        if (isBlank) {
+          const slots = c.slotComponents ?? defaultBlankSlotComponents();
+          const newSlots = {};
+          const base = Date.now();
+          BLANK_SLOT_IDS.forEach((sid, idx) => {
+            const list = slots[sid] ?? [];
+            const newComp = payload.type === 'text'
+              ? { type: 'text', id: `text-${base}-${idx}`, content: payload.content ?? '' }
+              : { type: 'image', id: `image-${base}-${idx}`, src: payload.src ?? '', alt: payload.alt ?? '' };
+            newSlots[sid] = [...list, newComp];
+          });
+          return { ...c, slotComponents: newSlots };
+        }
+        return { ...c, droppedElements: [...(c.droppedElements || []), { type: payload.type, content: payload.content, src: payload.src, alt: payload.alt }] };
+      })
     );
   }, [getSetBySection]);
 
