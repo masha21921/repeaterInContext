@@ -17,6 +17,18 @@ npm run dev
 
 Open the URL from the terminal (e.g. http://localhost:5173). Use the tabs to switch between **Harmony** and **Studio**.
 
+## Shareable link (GitHub Pages)
+
+The repo includes a GitHub Actions workflow that deploys the app to **GitHub Pages**. After you enable it once:
+
+1. On GitHub, open the repo → **Settings** → **Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Push to `main` (or run the workflow manually from the **Actions** tab). The site will be published at:
+
+   **https://masha21921.github.io/repeaterInContext/**
+
+Share that URL so others can open the prototype in the browser (no install required).
+
 ## Structure
 
 - `src/components/Repeater.jsx` — shared Repeater; takes `context` + `items`, renders by context type.
