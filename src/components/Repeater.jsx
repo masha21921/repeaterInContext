@@ -274,61 +274,30 @@ export function Repeater({
       </div>
       </div>
     );
-    const showVirtualContainer =
-      (connected && !usesParentContext) ||
-      (!connected && presetContextLabel);
-    const virtualCtxLabel = !connected && presetContextLabel ? presetContextLabel : displayContextLabel;
-    const virtualInstanceLabel = !connected && presetContextLabel ? '—' : displayInstanceLabel;
-
-    if (showVirtualContainer) {
-      return (
-        <div className="repeater-ctx-wrapper" data-ctx={virtualCtxLabel}>
-          <div
-            className={`ctx-repeater ctx-repeater--header ${isRepeaterSelected ? 'ctx-repeater--selected' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectRepeater?.();
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && onSelectRepeater?.()}
-          >
-            <span className="ctx-repeater__title">Virtual repeater container</span>
-            <span className="ctx-repeater__line">
-              <strong>CTX:</strong> {virtualCtxLabel}{' '}
-              <strong>CTX instance:</strong> {virtualInstanceLabel}.{' '}
-            </span>
-            {headerAction === 'details' && onOpenContextDetails && connected ? (
-              <ContextDetailsLink onOpenDetails={onOpenContextDetails} />
-            ) : null}
-          </div>
-          <div
-            className="repeater-ctx-content"
-            role="button"
-            tabIndex={0}
-            title="Click to select repeater"
-            aria-label="Repeater content — click to select repeater"
-            onClickCapture={(e) => {
-              if (!onSelectInnerRepeater) return;
-              if (e.target.closest('.ctx-repeater')) return;
-              /* Let toolbar buttons (Settings, Manage items) receive the click */
-              if (e.target.closest('.repeater-floating-toolbar')) return;
-              /* Let blank-slot column receive the click so BlankRepeaterSlotPanel can open */
-              if (e.target.closest('.repeater-blank-layout__col')) return;
-              /* Let blank-slot text/image elements receive the click so they stay selectable */
-              if (e.target.closest('.repeater-blank-slot__text') || e.target.closest('.repeater-blank-slot__img-wrap')) return;
-              e.stopPropagation();
-              e.preventDefault();
-              onSelectInnerRepeater();
-            }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectInnerRepeater?.(); } }}
-          >
-            {unconfiguredContent}
-          </div>
-        </div>
-      );
-    }
-    return unconfiguredContent;
+    /* No virtual container: wrap in content div for click-to-select only */
+    const unconfiguredContentClickProps = {
+      className: 'repeater-ctx-content',
+      role: 'button',
+      tabIndex: 0,
+      title: 'Click to select repeater',
+      'aria-label': 'Repeater content — click to select repeater',
+      onClickCapture: (e) => {
+        if (!onSelectInnerRepeater) return;
+        if (e.target.closest('.repeater-floating-toolbar')) return;
+        if (e.target.closest('.repeater-ribbon') || e.target.closest('.repeater-unconfigured-placeholder')) return; /* let Connect collection open modal */
+        if (e.target.closest('.repeater-blank-layout__col')) return;
+        if (e.target.closest('.repeater-blank-slot__text') || e.target.closest('.repeater-blank-slot__img-wrap')) return;
+        e.stopPropagation();
+        e.preventDefault();
+        onSelectInnerRepeater();
+      },
+      onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectInnerRepeater?.(); } },
+    };
+    return (
+      <div {...unconfiguredContentClickProps} data-ctx={presetContextLabel || ''}>
+        {unconfiguredContent}
+      </div>
+    );
   }
 
   const repeaterContent = (
@@ -340,6 +309,39 @@ export function Repeater({
             onRepeaterSettings={onOpenRepeaterSettings}
             onConnect={onOpenConnectModal}
           />
+        )}
+        {headerAction === 'details' && onOpenContextDetails && connected && (
+          <div className="repeater-ctx-technical repeater-ctx-technical--near" onClick={(e) => e.stopPropagation()}>
+            <span className="repeater-ctx-technical__label">
+              CTX: {displayContextLabel} · {displayInstanceLabel}
+            </span>
+            <button
+              type="button"
+              className="repeater-ctx-technical__btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onOpenContextDetails?.();
+              }}
+              title="Technical: this repeater holds a context instance (filter, sort, page size). Each repeater has its own instance."
+              aria-label="View context details (technical)"
+            >
+              CTX details
+            </button>
+            {contextInstance && (
+              <span className="repeater-ctx-technical__summary" aria-hidden>
+                {contextInstance.pagination != null && (
+                  <span>pageSize: {contextInstance.pagination?.pageSize ?? 4}</span>
+                )}
+                {contextInstance.filter != null && (
+                  <span> · filter: {(Array.isArray(contextInstance.filter) ? contextInstance.filter : contextInstance.filter?.rules ?? []).length} rule(s)</span>
+                )}
+                {contextInstance.sort != null && (
+                  <span> · sort: {contextInstance.sort === 'default' ? 'Date created (New → Old)' : String(contextInstance.sort)}</span>
+                )}
+              </span>
+            )}
+          </div>
         )}
         <div
           className={`repeater repeater--canvas ${isRecipes ? 'repeater--cards' : ''} ${isDragOver ? 'repeater--drop-target' : ''}`}
@@ -435,73 +437,33 @@ export function Repeater({
         </>
       )}
         </div>
-        {headerAction === 'details' && onOpenContextDetails && connected && (
-          <div className="repeater-ctx-technical" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="repeater-ctx-technical__btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onOpenContextDetails?.();
-              }}
-              title="Technical: this repeater holds a context instance (filter, sort, page size). Each repeater has its own instance."
-              aria-label="View context instance details (technical)"
-            >
-              CTX instance
-            </button>
-          </div>
-        )}
       </div>
     </>
   );
 
-  if (connected && !usesParentContext) {
-    return (
-      <div className="repeater-ctx-wrapper" data-ctx={displayContextLabel}>
-        <div
-          className={`ctx-repeater ctx-repeater--header ${isRepeaterSelected ? 'ctx-repeater--selected' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelectRepeater?.();
-          }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && onSelectRepeater?.()}
-        >
-          <span className="ctx-repeater__title">Virtual repeater container</span>
-          <span className="ctx-repeater__line">
-            <strong>CTX:</strong> {displayContextLabel}{' '}
-            <strong>CTX instance:</strong> {displayInstanceLabel}.{' '}
-          </span>
-        </div>
-        <div
-          className="repeater-ctx-content"
-          role="button"
-          tabIndex={0}
-          title="Click to select repeater"
-          aria-label="Repeater content — click to select repeater"
-          onClickCapture={(e) => {
-            if (!onSelectInnerRepeater) return;
-            if (e.target.closest('.ctx-repeater')) return;
-            /* Let toolbar buttons (Settings, Manage items) receive the click */
-            if (e.target.closest('.repeater-floating-toolbar')) return;
-            /* Let repeater items and inner elements receive the click so they stay selectable */
-            if (e.target.closest('.recipe-card') || e.target.closest('.repeater-item-with-dropped') || e.target.closest('.repeater-chip')) return;
-            e.stopPropagation();
-            e.preventDefault();
-            onSelectInnerRepeater();
-          }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectInnerRepeater?.(); } }}
-        >
-          {repeaterContent}
-        </div>
-      </div>
-    );
-  }
-
-  /* Uses parent context: don't show container bar */
-  return repeaterContent;
+  /* No virtual container: context on repeater itself; wrap content for click-to-select */
+  const connectedContentClickProps = {
+    className: 'repeater-ctx-content',
+    role: 'button',
+    tabIndex: 0,
+    title: 'Click to select repeater',
+    'aria-label': 'Repeater content — click to select repeater',
+    onClickCapture: (e) => {
+      if (!onSelectInnerRepeater) return;
+      if (e.target.closest('.repeater-floating-toolbar')) return;
+      if (e.target.closest('.repeater-ctx-technical')) return; /* let CTX details button open panel */
+      if (e.target.closest('.recipe-card') || e.target.closest('.repeater-item-with-dropped') || e.target.closest('.repeater-chip')) return;
+      e.stopPropagation();
+      e.preventDefault();
+      onSelectInnerRepeater();
+    },
+    onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectInnerRepeater?.(); } },
+  };
+  return (
+    <div {...connectedContentClickProps} data-ctx={displayContextLabel}>
+      {repeaterContent}
+    </div>
+  );
 }
 
 /** Format context instance (pagination, filter, sort) for display */

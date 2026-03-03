@@ -80,11 +80,30 @@
   display: none;
 }
 
-/* Technical: link to view context instance (filter, sort, page size). Not part of main user flow. */
+/* Technical: CTX info near repeater (above content). Not part of main user flow. */
 .repeater-ctx-technical {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px dashed #dadce0;
+}
+
+.repeater-ctx-technical--near {
+  margin-top: 0;
+  margin-bottom: 6px;
+  padding-top: 0;
+  padding-bottom: 6px;
+  border-top: none;
+  border-bottom: 1px dashed #dadce0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.repeater-ctx-technical__label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #5f6368;
 }
 
 .repeater-ctx-technical__btn {
@@ -101,6 +120,17 @@
 
 .repeater-ctx-technical__btn:hover {
   color: #1967d2;
+}
+
+.repeater-ctx-technical__summary {
+  font-size: 0.6rem;
+  color: #5f6368;
+  line-height: 1.3;
+}
+
+.repeater-ctx-technical:not(.repeater-ctx-technical--near) .repeater-ctx-technical__summary {
+  margin-top: 4px;
+  display: block;
 }
 
 .ctx-repeater__line {
