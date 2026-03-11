@@ -958,9 +958,6 @@ export function InputComponentsEditor() {
       })()}
       <header className="editor-header">
         <h1 className="editor-name">Input components</h1>
-        <p className="editor-desc">
-          Create forms by adding <strong>text input</strong> and <strong>dropdown</strong> components.
-        </p>
       </header>
 
       <div className="editor-workspace">

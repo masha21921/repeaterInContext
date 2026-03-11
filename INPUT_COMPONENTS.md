@@ -121,17 +121,41 @@ When you select a component on the canvas, a floating toolbar appears with:
 ### Component States
 - **Unselected, Not Connected**: Gray border, minimal visual presence
 - **Unselected, Connected**: Light dashed pink border (subtle indication of binding)
-- **Selected, Connected**: Soft pink border (clearly shows active selection)
+- **Selected, Connected**: Soft semi-transparent pink border (clearly shows active selection)
 - **Selected, Not Connected**: Blue border (indicates selected but not yet bound)
+
+### Settings Panel Structure
+The component settings panel has two tabs:
+
+**Design Tab:**
+- **Placeholder Text** (Text inputs): Default text shown when empty
+- **Label** (Buttons): Text displayed on the button
+
+**Settings Tab:**
+- All binding configuration (Select Source, Input Purpose, Target Field, etc.)
+- Validation Rules section with context schema and component-level overrides
 
 ## Validation
 
-When an input is set to "Edit Field" (Update or Create), the Validation section appears showing:
-- **Context Schema Rules** (read-only): Auto-generated from your context schema
+### Context Schema Validation (Read-only)
+When an input is set to "Edit Field" (Update or Create), the Validation Rules section shows:
+- **From Context Schema**: Auto-generated validation rules from your CMS schema
   - Required status
-  - Type constraints
+  - Type constraints (e.g., Email, Number)
   - Min/Max length rules
-- **Custom Regex** (optional): Add component-level validation with a regular expression
+
+### Component Level Validation
+Add custom validation beyond the schema:
+
+**Custom Validation Function:**
+- Select from pre-built validation functions (validateEmail, validatePhone, validatePostalCode, checkUniqueness)
+- Or select "Custom" to enter your own Velo function name
+- Available for both text inputs and dropdowns
+
+**Regex Pattern (Text Inputs Only):**
+- Define a regex pattern for format validation
+- Only appears for text input components
+- Not available for dropdowns
 
 ## Tips & Best Practices
 
