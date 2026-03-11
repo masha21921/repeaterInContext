@@ -148,7 +148,7 @@ export function Section({
           <ComponentWrapper
             key={comp.id}
             isSelected={selectedComponentId === comp.id}
-            connected={comp.connected ?? false}
+            connected={comp.type === 'repeater' ? comp.connected : !!comp.boundContext}
             onSelect={() => onSelectComponent?.(sectionId, comp.id)}
             draggablePayload={
               comp.type === 'text'

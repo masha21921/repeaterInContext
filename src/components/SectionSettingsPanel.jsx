@@ -32,6 +32,8 @@ export function SectionSettingsPanel({
   onOpenFilter,
   onOpenContextInstanceSettings,
   onDisconnectContext,
+  allComponents = [], // Added to check bindings
+  onAddComponentFromContext, // Added to handle + Add click
 }) {
   const [activeTab, setActiveTab] = useState('settings');
   const singleSettings = contextSettings ?? { pageLoad: 4, filterRules: [], sortRules: [] };
@@ -79,30 +81,76 @@ export function SectionSettingsPanel({
                     const cardFilterSummary = (ctx.settings?.filterRules?.length ?? 0) > 0
                       ? `${ctx.settings.filterRules.length} rule${ctx.settings.filterRules.length === 1 ? '' : 's'}`
                       : 'None';
+                    const isBound = allComponents.some(c => c.boundContext === ctx.contextId);
                     return (
                     <li key={ctx.contextId} className="section-settings-panel__context-item section-settings-panel__context-item--card">
-                      <div className="section-settings-panel__context-card-content">
-                        <div className="section-settings-panel__context-card-line">
-                          <span className="section-settings-panel__context-card-meta">Context provider:</span>
-                          <span className="section-settings-panel__context-card-value">{ctx.label}</span>
+                      <div className="section-settings-panel__context-card-header">
+                        <div className="section-settings-panel__context-card-title-row">
+                          <span className="section-settings-panel__context-card-name">{ctx.label}</span>
                         </div>
-                        <div className="section-settings-panel__context-card-line">
-                          <span className="section-settings-panel__context-card-meta">Content instance:</span>
-                          <span className="section-settings-panel__context-card-value">{ctx.instanceLabel ?? '—'}</span>
+                        <div className="section-settings-panel__context-card-source">from {sectionId}</div>
+                        <div className="section-settings-panel__context-card-instance">
+                          <span className="meta">Instance:</span> {ctx.instanceLabel}
                         </div>
-                        <div className="section-settings-panel__context-card-line">
-                          <span className="section-settings-panel__context-card-meta">Filter:</span>
-                          <span className="section-settings-panel__context-card-value">{cardFilterSummary}</span>
-                        </div>
-                        <div className="section-settings-panel__context-card-line">
-                          <span className="section-settings-panel__context-card-meta">Sort:</span>
-                          <span className="section-settings-panel__context-card-value">{ctx.sortSummary}</span>
-                        </div>
-                        <div className="section-settings-panel__context-card-line">
-                          <span className="section-settings-panel__context-card-meta">Items per load:</span>
-                          <span className="section-settings-panel__context-card-value">{ctx.settings?.pageLoad ?? 4}</span>
+                        <div className={`section-settings-panel__context-card-status ${isBound ? 'in-use' : ''}`}>
+                          <span className="status-dot"></span> {isBound ? 'In use' : 'Not connected'}
                         </div>
                       </div>
+                      
+                      <details className="section-settings-panel__context-card-details">
+                        <summary>What this context exposes</summary>
+                        <div className="section-settings-panel__context-category">
+                          <strong>Data fields (3)</strong>
+                          <ul>
+                            <li>
+                              <span className="icon">T</span> <span className="field-name">brand</span> 
+                              {allComponents.some(c => c.boundContext === ctx.contextId && c.boundField === 'brand') ? (
+                                <span className="tag tag--in-use">In use</span>
+                              ) : (
+                                <span className="tag tag--add" title="Add component to canvas" onClick={() => onAddComponentFromContext?.(ctx.contextId, 'brand', 'textInput')}>+ Add</span>
+                              )}
+                            </li>
+                            <li>
+                              <span className="icon">#</span> <span className="field-name">price</span> 
+                              {allComponents.some(c => c.boundContext === ctx.contextId && c.boundField === 'price') ? (
+                                <span className="tag tag--in-use">In use</span>
+                              ) : (
+                                <span className="tag tag--add" title="Add component to canvas" onClick={() => onAddComponentFromContext?.(ctx.contextId, 'price', 'textInput')}>+ Add</span>
+                              )}
+                            </li>
+                            <li>
+                              <span className="icon">🖼</span> <span className="field-name">image</span> 
+                              {allComponents.some(c => c.boundContext === ctx.contextId && c.boundField === 'image') ? (
+                                <span className="tag tag--in-use">In use</span>
+                              ) : (
+                                <span className="tag tag--add" title="Add component to canvas" onClick={() => onAddComponentFromContext?.(ctx.contextId, 'image', 'image')}>+ Add</span>
+                              )}
+                            </li>
+                          </ul>
+                        </div>
+                        <div className="section-settings-panel__context-category">
+                          <strong>Actions (2)</strong>
+                          <ul>
+                            <li>
+                              <span className="icon">⚡</span> <span className="field-name">updateCurrentItem</span> 
+                              {allComponents.some(c => c.boundContext === ctx.contextId && c.role === 'update') ? (
+                                <span className="tag tag--in-use">In use</span>
+                              ) : (
+                                <span className="tag tag--add" title="Add component to canvas" onClick={() => onAddComponentFromContext?.(ctx.contextId, 'updateCurrentItem', 'button')}>+ Add</span>
+                              )}
+                            </li>
+                            <li>
+                              <span className="icon">⚡</span> <span className="field-name">setFilter</span> 
+                              {allComponents.some(c => c.boundContext === ctx.contextId && c.role === 'filter') ? (
+                                <span className="tag tag--in-use">In use</span>
+                              ) : (
+                                <span className="tag tag--add" title="Add component to canvas" onClick={() => onAddComponentFromContext?.(ctx.contextId, 'setFilter', 'dropdown')}>+ Add</span>
+                              )}
+                            </li>
+                          </ul>
+                        </div>
+                      </details>
+
                       <div className="section-settings-panel__context-card-actions">
                         {onOpenContextInstanceSettings && (
                           <button

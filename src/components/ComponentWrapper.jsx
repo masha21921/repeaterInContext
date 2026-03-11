@@ -15,7 +15,7 @@ export function ComponentWrapper({ children, isSelected, onSelect, draggablePayl
 
   return (
     <div
-      className={`component-wrapper ${isSelected ? 'component-wrapper--selected' : ''} ${isSelected && connected ? 'component-wrapper--connected' : ''} ${draggablePayload ? 'component-wrapper--draggable' : ''}`}
+      className={`component-wrapper ${isSelected ? 'component-wrapper--selected' : ''} ${connected ? 'component-wrapper--connected' : ''} ${draggablePayload ? 'component-wrapper--draggable' : ''}`}
       draggable={!!draggablePayload}
       onDragStart={draggablePayload ? handleDragStart : undefined}
       onClick={(e) => {
@@ -28,6 +28,14 @@ export function ComponentWrapper({ children, isSelected, onSelect, draggablePayl
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onSelect?.()}
     >
+      {connected && (
+        <div className="component-wrapper__bound-indicator" title="Bound to context">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+        </div>
+      )}
       <div className="component-wrapper__content">{children}</div>
     </div>
   );

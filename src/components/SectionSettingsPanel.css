@@ -68,28 +68,162 @@
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
+  padding: 12px;
 }
 
-.section-settings-panel__context-card-content {
+.section-settings-panel__context-card-header {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.section-settings-panel__context-card-line {
-  font-size: 0.8125rem;
+.section-settings-panel__context-card-title-row {
   display: flex;
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.section-settings-panel__context-card-meta {
-  color: #5f6368;
-  min-width: 100px;
-}
-
-.section-settings-panel__context-card-value {
+.section-settings-panel__context-card-name {
+  font-weight: 600;
+  font-size: 14px;
   color: #202124;
+}
+
+.section-settings-panel__context-card-badge {
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.section-settings-panel__context-card-source {
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.section-settings-panel__context-card-instance {
+  font-size: 11px;
+  color: #202124;
+  margin-top: 2px;
+}
+
+.section-settings-panel__context-card-instance .meta {
+  color: #5f6368;
+}
+
+.section-settings-panel__context-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5f6368;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #f1f3f4;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.section-settings-panel__context-card-status.in-use {
+  color: #c2185b;
+  background: #fce4ec;
+}
+
+.section-settings-panel__context-card-status .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9aa0a6;
+}
+
+.section-settings-panel__context-card-status.in-use .status-dot {
+  background: #e91e63;
+}
+
+.section-settings-panel__context-card-details {
+  font-size: 12px;
+  border-top: 1px solid #e8eaed;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.section-settings-panel__context-card-details summary {
+  cursor: pointer;
+  color: #1a73e8;
   font-weight: 500;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+.section-settings-panel__context-category {
+  margin-bottom: 12px;
+}
+
+.section-settings-panel__context-category strong {
+  display: block;
+  color: #5f6368;
+  margin-bottom: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.section-settings-panel__context-category ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section-settings-panel__context-category li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #fff;
+  border: 1px solid #e8eaed;
+  border-radius: 4px;
+}
+
+.section-settings-panel__context-category .icon {
+  color: #9aa0a6;
+  margin-right: 8px;
+  font-family: monospace;
+  font-weight: bold;
+  width: 16px;
+  text-align: center;
+  display: inline-block;
+}
+
+.section-settings-panel__context-category .field-name {
+  flex: 1;
+  font-family: monospace;
+  color: #202124;
+}
+
+.section-settings-panel__context-category .tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.section-settings-panel__context-category .tag--in-use {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
+.section-settings-panel__context-category .tag--add {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.section-settings-panel__context-category .tag--add:hover {
+  background: #d2e3fc;
 }
 
 .section-settings-panel__context-card-actions {

@@ -110,6 +110,8 @@ export const availableContexts = [
   { id: 'actors', type: 'actors', label: 'Actors', source: 'CMS/Actors collection', items: actorsCollectionItems },
   { id: 'seamless', type: 'seamless', label: 'Seamless collection', source: 'Seamless', items: seamlessCollectionItems },
   { id: 'stores', type: 'e-com', label: 'Stores', source: 'Stores', items: ecomItems },
+  { id: 'sys-geo', type: 'sys-geo', label: 'Geolocation', source: 'System', items: [] },
+  { id: 'sys-user', type: 'sys-user', label: 'Current User', source: 'System', items: [] },
 ];
 
 /** Placeholder items for Studio repeater presets when not connected (by topic). */

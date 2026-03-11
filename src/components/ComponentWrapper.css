@@ -13,10 +13,31 @@
   box-shadow: 0 0 0 1px #1a73e8;
 }
 
-/* Selected and connected to context: pink */
-.component-wrapper--selected.component-wrapper--connected {
-  border-color: #c9a0dc;
-  box-shadow: 0 0 0 1px #c9a0dc;
+/* Connected to context: pink */
+.component-wrapper--connected {
+  border-color: rgba(233, 30, 99, 0.3);
+  border-style: dashed;
+}
+
+.component-wrapper--connected.component-wrapper--selected {
+  border-color: rgba(217, 70, 166, 0.5);
+  border-style: solid;
+}
+
+.component-wrapper__bound-indicator {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #e91e63;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .component-wrapper--draggable {

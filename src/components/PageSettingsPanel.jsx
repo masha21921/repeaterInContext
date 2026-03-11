@@ -80,30 +80,17 @@ export function PageSettingsPanel({
                       ? `${ctx.settings.filterRules.length} rule${ctx.settings.filterRules.length === 1 ? '' : 's'}`
                       : 'None';
                     return (
-                    <li key={ctx.contextId} className="page-settings-panel__context-item page-settings-panel__context-item--card">
-                      <div className="page-settings-panel__context-card-content">
-                        <div className="page-settings-panel__context-card-line">
-                          <span className="page-settings-panel__context-card-meta">Context provider:</span>
-                          <span className="page-settings-panel__context-card-value">{ctx.label}</span>
+                    <li key={ctx.contextId} className="section-settings-panel__context-item section-settings-panel__context-item--card">
+                      <div className="section-settings-panel__context-card-header">
+                        <div className="section-settings-panel__context-card-title-row">
+                          <span className="section-settings-panel__context-card-name">{ctx.label}</span>
                         </div>
-                        <div className="page-settings-panel__context-card-line">
-                          <span className="page-settings-panel__context-card-meta">Content instance:</span>
-                          <span className="page-settings-panel__context-card-value">{ctx.instanceLabel ?? '—'}</span>
-                        </div>
-                        <div className="page-settings-panel__context-card-line">
-                          <span className="page-settings-panel__context-card-meta">Filter:</span>
-                          <span className="page-settings-panel__context-card-value">{cardFilterSummary}</span>
-                        </div>
-                        <div className="page-settings-panel__context-card-line">
-                          <span className="page-settings-panel__context-card-meta">Sort:</span>
-                          <span className="page-settings-panel__context-card-value">{ctx.sortSummary}</span>
-                        </div>
-                        <div className="page-settings-panel__context-card-line">
-                          <span className="page-settings-panel__context-card-meta">Items per load:</span>
-                          <span className="page-settings-panel__context-card-value">{ctx.settings?.pageLoad ?? 4}</span>
+                        <div className="section-settings-panel__context-card-source">from Page</div>
+                        <div className="section-settings-panel__context-card-instance">
+                          <span className="meta">Instance:</span> {ctx.instanceLabel ?? '—'}
                         </div>
                       </div>
-                      <div className="page-settings-panel__context-card-actions">
+                      <div className="section-settings-panel__context-card-actions">
                         {onOpenContextInstanceSettings && (
                           <button
                             type="button"
@@ -117,7 +104,7 @@ export function PageSettingsPanel({
                         {onDisconnectContext && (
                           <button
                             type="button"
-                            className="repeater-settings-panel__btn-text page-settings-panel__context-card-delete"
+                            className="repeater-settings-panel__btn-text section-settings-panel__context-card-delete"
                             onClick={() => onDisconnectContext(ctx.contextId)}
                             aria-label="Disconnect context"
                           >
