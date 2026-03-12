@@ -198,7 +198,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
             </div>
 
             <div className="input-settings-panel__group">
-              <label className="input-settings-panel__label">What is this input for?</label>
+              <label className="input-settings-panel__label">What is this input for? <span style={{ fontSize: '11px', color: '#999', fontWeight: 'normal' }}>(aka onChange)</span></label>
               <select 
                 className="input-settings-panel__select"
                 value={component.role || ''} 
