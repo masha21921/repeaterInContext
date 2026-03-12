@@ -222,7 +222,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                   <label className="input-settings-panel__label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                     <input 
                       type="checkbox" 
-                      checked={component.triggerOnChange !== false} 
+                      checked={component.role === 'edit-update' ? component.triggerOnChange === true : component.triggerOnChange !== false} 
                       onChange={e => onChange({ triggerOnChange: e.target.checked })}
                     />
                     Trigger on change
