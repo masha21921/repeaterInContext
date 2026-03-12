@@ -388,80 +388,79 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                 <h4 className="validation-section__title">Validation Rules</h4>
                 
                 <div className="cms-validation">
-                  <span className="cms-validation__label">Context Schema (Read-only)</span>
+                  <span className="cms-validation__label">From Context Schema (Always Applied)</span>
                   <ul className="cms-validation__list">
-                    <li>Required: {component.role === 'edit-update' || component.role === 'edit-create' ? 'Yes' : 'N/A'}</li>
+                    <li>Required: Yes</li>
                     {component.boundField === 'phone' && <li>Min length: 8</li>}
                     {component.boundField === 'price' && <li>Type: Number</li>}
                     {component.boundField === 'email' && <li>Format: Email</li>}
                     {component.boundField === 'title' && <li>Max length: 200</li>}
                   </ul>
+                  <p className="input-settings-panel__help" style={{ marginTop: '8px', fontStyle: 'italic' }}>
+                    These validations from your context schema cannot be modified here.
+                  </p>
                 </div>
 
-                {(component.role === 'edit-update' || component.role === 'edit-create') && (
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
-                    <div className="cms-validation">
-                      <span className="cms-validation__label">Component Level</span>
-                      
-                      <div style={{ marginTop: '12px' }}>
-                        <label className="input-settings-panel__label">Custom Validation Function</label>
-                        <select 
-                          className="input-settings-panel__select"
-                          value={component.customValidation || ''} 
-                          onChange={e => onChange({ customValidation: e.target.value })}
-                        >
-                          <option value="">None</option>
-                          {component.boundContext && (
-                            <optgroup label="Available Functions">
-                              <option value="validateEmail">validateEmail</option>
-                              <option value="validatePhone">validatePhone</option>
-                              <option value="validatePostalCode">validatePostalCode</option>
-                              <option value="checkUniqueness">checkUniqueness</option>
-                              <option value="custom">Custom (Enter function name)</option>
-                            </optgroup>
-                          )}
-                          {!component.boundContext && (
-                            <option value="custom">Custom (Enter function name)</option>
-                          )}
-                        </select>
-                        <p className="input-settings-panel__help">
-                          Select a validation function from the context or enter a custom one.
-                        </p>
-                        
-                        {component.customValidation === 'custom' && (
-                          <div style={{ marginTop: '8px' }}>
-                            <input 
-                              type="text" 
-                              className="input-settings-panel__input"
-                              value={component.customValidationFunction || ''} 
-                              onChange={e => onChange({ customValidationFunction: e.target.value })} 
-                              placeholder="e.g. myCustomValidator" 
-                            />
-                            <p className="input-settings-panel__help">
-                              Enter the custom function name from your Velo code.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {component.type === 'textInput' && (
-                        <div style={{ marginTop: '12px' }}>
-                          <label className="input-settings-panel__label">Regex Pattern (Text Input only)</label>
-                          <input 
-                            type="text" 
-                            className="input-settings-panel__input"
-                            value={component.regex || ''} 
-                            onChange={e => onChange({ regex: e.target.value })} 
-                            placeholder="e.g. ^[0-9]+$" 
-                          />
-                          <p className="input-settings-panel__help">
-                            Define a regex pattern for format validation (text inputs only).
-                          </p>
-                        </div>
+                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
+                  <span className="cms-validation__label">Add Additional Validation</span>
+                  
+                  <div style={{ marginTop: '12px' }}>
+                    <label className="input-settings-panel__label">Custom Validation Function</label>
+                    <select 
+                      className="input-settings-panel__select"
+                      value={component.customValidation || ''} 
+                      onChange={e => onChange({ customValidation: e.target.value })}
+                    >
+                      <option value="">None</option>
+                      {component.boundContext && (
+                        <optgroup label="Available Functions">
+                          <option value="validateEmail">validateEmail</option>
+                          <option value="validatePhone">validatePhone</option>
+                          <option value="validatePostalCode">validatePostalCode</option>
+                          <option value="checkUniqueness">checkUniqueness</option>
+                          <option value="custom">Custom (Enter function name)</option>
+                        </optgroup>
                       )}
-                    </div>
+                      {!component.boundContext && (
+                        <option value="custom">Custom (Enter function name)</option>
+                      )}
+                    </select>
+                    <p className="input-settings-panel__help">
+                      Select a validation function from the context or enter a custom one.
+                    </p>
+                    
+                    {component.customValidation === 'custom' && (
+                      <div style={{ marginTop: '8px' }}>
+                        <input 
+                          type="text" 
+                          className="input-settings-panel__input"
+                          value={component.customValidationFunction || ''} 
+                          onChange={e => onChange({ customValidationFunction: e.target.value })} 
+                          placeholder="e.g. myCustomValidator" 
+                        />
+                        <p className="input-settings-panel__help">
+                          Enter the custom function name from your Velo code.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {component.type === 'textInput' && (
+                    <div style={{ marginTop: '12px' }}>
+                      <label className="input-settings-panel__label">Regex Pattern</label>
+                      <input 
+                        type="text" 
+                        className="input-settings-panel__input"
+                        value={component.regex || ''} 
+                        onChange={e => onChange({ regex: e.target.value })} 
+                        placeholder="e.g. ^[0-9]+$" 
+                      />
+                      <p className="input-settings-panel__help">
+                        Define a regex pattern for additional format validation.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </>
