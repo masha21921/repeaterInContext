@@ -25,12 +25,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
       );
     }
 
-    return [
-      {
-        label: 'Standard Purposes',
-        options: contextActions
-      }
-    ];
+    return contextActions;
   };
 
   const contextGroups = [
@@ -211,10 +206,8 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                 disabled={!component.boundContext}
               >
                 <option value="">Select purpose...</option>
-                {component.boundContext && getPurposeGroups(component.boundContext).map(group => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </optgroup>
+                {component.boundContext && getPurposeGroups(component.boundContext).map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
               <p className="input-settings-panel__help">
