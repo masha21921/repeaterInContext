@@ -144,19 +144,24 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
     <div className="input-settings-panel">
       <header className="input-settings-panel__header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px' }}>
-          <div className="input-settings-panel__tabs">
-            <button 
-              className={`input-settings-panel__tab ${activeTab === 'design' ? 'active' : ''}`}
-              onClick={() => setActiveTab('design')}
-            >
-              Design
-            </button>
-            <button 
-              className={`input-settings-panel__tab ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Settings
-            </button>
+          <div>
+            <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>
+              {component.type === 'textInput' ? 'Text Input' : component.type === 'dropdown' ? 'Dropdown' : 'Button'}
+            </div>
+            <div className="input-settings-panel__tabs">
+              <button 
+                className={`input-settings-panel__tab ${activeTab === 'design' ? 'active' : ''}`}
+                onClick={() => setActiveTab('design')}
+              >
+                Design
+              </button>
+              <button 
+                className={`input-settings-panel__tab ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                Settings
+              </button>
+            </div>
           </div>
           <button className="input-settings-panel__close" onClick={onClose}>×</button>
         </div>
