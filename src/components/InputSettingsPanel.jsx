@@ -399,51 +399,117 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                 </div>
 
                 <div style={{ marginTop: '12px' }}>
-                  <label className="input-settings-panel__label">Add Custom Validation</label>
-                  <select 
-                    className="input-settings-panel__select"
-                    value={component.customValidation || ''} 
-                    onChange={e => onChange({ customValidation: e.target.value })}
-                  >
-                    <option value="">None</option>
-                    {component.boundContext && (
-                      <optgroup label="Available Functions">
-                        <option value="validateEmail">validateEmail</option>
-                        <option value="validatePhone">validatePhone</option>
-                        <option value="validatePostalCode">validatePostalCode</option>
-                        <option value="checkUniqueness">checkUniqueness</option>
-                        <option value="custom">Custom (Enter function name)</option>
-                      </optgroup>
-                    )}
-                    {!component.boundContext && (
-                      <option value="custom">Custom (Enter function name)</option>
-                    )}
-                  </select>
-                  
-                  {component.customValidation === 'custom' && (
-                    <input 
-                      type="text" 
-                      className="input-settings-panel__input"
-                      value={component.customValidationFunction || ''} 
-                      onChange={e => onChange({ customValidationFunction: e.target.value })} 
-                      placeholder="e.g. myCustomValidator"
-                      style={{ marginTop: '8px' }}
-                    />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className="input-settings-panel__label">Custom Validations</label>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const customValidations = component.customValidations || [];
+                        onChange({ customValidations: [...customValidations, { id: Date.now(), type: '', value: '' }] });
+                      }}
+                      style={{
+                        background: '#f0f0f0',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        color: '#333'
+                      }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+
+                  {(!component.customValidations || component.customValidations.length === 0) ? (
+                    <p style={{ fontSize: '13px', color: '#999', marginBottom: '0' }}>No additional validations added</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {component.customValidations.map((validation, index) => (
+                        <div key={validation.id} style={{ padding: '8px', background: '#f9f9f9', borderRadius: '4px', border: '1px solid #eee' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                            <select 
+                              className="input-settings-panel__select"
+                              value={validation.type || ''} 
+                              onChange={e => {
+                                const updated = [...component.customValidations];
+                                updated[index].type = e.target.value;
+                                onChange({ customValidations: updated });
+                              }}
+                              style={{ flex: 1, marginBottom: '0' }}
+                            >
+                              <option value="">Select validation...</option>
+                              {component.boundContext && (
+                                <optgroup label="Functions">
+                                  <option value="validateEmail">validateEmail</option>
+                                  <option value="validatePhone">validatePhone</option>
+                                  <option value="validatePostalCode">validatePostalCode</option>
+                                  <option value="checkUniqueness">checkUniqueness</option>
+                                  <option value="custom">Custom</option>
+                                </optgroup>
+                              )}
+                              {!component.boundContext && (
+                                <option value="custom">Custom</option>
+                              )}
+                              {component.type === 'textInput' && (
+                                <option value="regex">Regex Pattern</option>
+                              )}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = component.customValidations.filter((_, i) => i !== index);
+                                onChange({ customValidations: updated });
+                              }}
+                              style={{
+                                background: '#fff',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                padding: '6px 8px',
+                                cursor: 'pointer',
+                                color: '#999',
+                                fontSize: '12px',
+                                marginTop: '2px'
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          
+                          {validation.type === 'custom' && (
+                            <input 
+                              type="text" 
+                              className="input-settings-panel__input"
+                              value={validation.value || ''} 
+                              onChange={e => {
+                                const updated = [...component.customValidations];
+                                updated[index].value = e.target.value;
+                                onChange({ customValidations: updated });
+                              }}
+                              placeholder="Function name"
+                              style={{ marginTop: '8px', width: '100%' }}
+                            />
+                          )}
+                          
+                          {validation.type === 'regex' && (
+                            <input 
+                              type="text" 
+                              className="input-settings-panel__input"
+                              value={validation.value || ''} 
+                              onChange={e => {
+                                const updated = [...component.customValidations];
+                                updated[index].value = e.target.value;
+                                onChange({ customValidations: updated });
+                              }}
+                              placeholder="e.g. ^[0-9]+$"
+                              style={{ marginTop: '8px', width: '100%' }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-
-                {component.type === 'textInput' && (
-                  <div style={{ marginTop: '12px' }}>
-                    <label className="input-settings-panel__label">Regex Pattern</label>
-                    <input 
-                      type="text" 
-                      className="input-settings-panel__input"
-                      value={component.regex || ''} 
-                      onChange={e => onChange({ regex: e.target.value })} 
-                      placeholder="e.g. ^[0-9]+$" 
-                    />
-                  </div>
-                )}
               </div>
             )}
           </>
