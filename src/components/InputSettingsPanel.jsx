@@ -5,12 +5,17 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
   const [activeTab, setActiveTab] = useState('settings');
 
   const getPurposeGroups = (contextId) => {
-    const contextActions = [
+    let contextActions = [
       { value: 'edit-update', label: 'Edit Field - Update Existing Item' },
       { value: 'edit-create', label: 'Edit Field - Create New Item' },
       { value: 'filter', label: 'Filter Items' },
       { value: 'sort', label: 'Sort Items' },
     ];
+
+    // Text inputs don't support sorting - filter only to update, create, and filter
+    if (component.type === 'textInput') {
+      contextActions = contextActions.filter(a => a.value !== 'sort');
+    }
 
     // Add eCommerce specific actions if connected to a store context
     if (contextId === 'stores') {
