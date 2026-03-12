@@ -29,12 +29,6 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
       {
         label: 'Standard Purposes',
         options: contextActions
-      },
-      {
-        label: 'Advanced',
-        options: [
-          { value: 'custom', label: 'Custom Behavior (Velo)' },
-        ]
       }
     ];
   };
