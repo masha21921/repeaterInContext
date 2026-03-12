@@ -42,7 +42,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
   ];
 
   const fieldOptions = {
-    'recipes': ['title', 'description', 'course', 'buttonText'],
+    'recipes': ['title', 'description', 'course', 'image', 'buttonText'],
     'team': ['title', 'image', 'buttonText'],
     'services': ['title', 'description', 'duration'],
     'bookends': ['title', 'author', 'genre'],
@@ -54,10 +54,81 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
 
   const hasOptions = component.type === 'dropdown';
 
+  const getFieldIcon = (fieldName) => {
+    // Return icon based on field type
+    if (fieldName === 'price' || fieldName === 'bedrooms' || fieldName === 'duration' || fieldName === 'inventory') {
+      return '#️⃣'; // Number
+    } else if (fieldName === 'image') {
+      return '🖼️'; // Image
+    } else if (fieldName === 'email') {
+      return '✉️'; // Email
+    } else if (fieldName === 'title' || fieldName === 'name' || fieldName === 'author' || fieldName === 'genre' || fieldName === 'city' || fieldName === 'country') {
+      return '📝'; // Text
+    } else {
+      return '📋'; // Default
+    }
+  };
+
+  const getSortOptionsForField = (fieldName) => {
+    // Return sort options relevant to field type
+    if (fieldName === 'price' || fieldName === 'bedrooms' || fieldName === 'duration' || fieldName === 'inventory') {
+      // Numeric fields
+      return [
+        { value: 'asc', label: 'Ascending (Low to High)' },
+        { value: 'desc', label: 'Descending (High to Low)' },
+      ];
+    } else if (fieldName === 'image') {
+      // Image fields
+      return [
+        { value: 'present', label: 'Images Present First' },
+        { value: 'missing', label: 'Missing Images First' },
+      ];
+    } else {
+      // Text fields
+      return [
+        { value: 'asc', label: 'Ascending (A-Z)' },
+        { value: 'desc', label: 'Descending (Z-A)' },
+      ];
+    }
+  };
+
+  const getConditionsForField = (fieldName) => {
+    // Return conditions relevant to field type
+    if (fieldName === 'price' || fieldName === 'bedrooms' || fieldName === 'duration' || fieldName === 'inventory') {
+      // Numeric fields
+      return [
+        { value: 'equals', label: 'Equals' },
+        { value: 'notEquals', label: 'Not equals' },
+        { value: 'greaterThan', label: 'Greater than' },
+        { value: 'lessThan', label: 'Less than' },
+        { value: 'greaterOrEqual', label: 'Greater or equal' },
+        { value: 'lessOrEqual', label: 'Less or equal' },
+        { value: 'between', label: 'Between' },
+      ];
+    } else if (fieldName === 'image') {
+      // Image fields
+      return [
+        { value: 'isEmpty', label: 'Is empty' },
+        { value: 'isNotEmpty', label: 'Is not empty' },
+      ];
+    } else {
+      // Text fields
+      return [
+        { value: 'equals', label: 'Equals' },
+        { value: 'notEquals', label: 'Not equals' },
+        { value: 'contains', label: 'Contains' },
+        { value: 'startsWith', label: 'Starts with' },
+        { value: 'endsWith', label: 'Ends with' },
+        { value: 'isEmpty', label: 'Is empty' },
+        { value: 'isNotEmpty', label: 'Is not empty' },
+      ];
+    }
+  };
+
   const getSampleFieldValues = (contextId, fieldName) => {
     // Mock data for each context - in a real app, this would pull from actual data
     const sampleData = {
-      'recipes': { title: ['Pasta Carbonara', 'Caesar Salad', 'Tiramisu'], course: ['Appetizer', 'Main', 'Dessert'], description: ['Classic Italian dish', 'Fresh greens', 'Coffee-flavored dessert'] },
+      'recipes': { title: ['Pasta Carbonara', 'Caesar Salad', 'Tiramisu'], course: ['Appetizer', 'Main', 'Dessert'], description: ['Classic Italian dish', 'Fresh greens', 'Coffee-flavored dessert'], image: ['pasta.jpg', 'salad.jpg', 'tiramisu.jpg'] },
       'team': { title: ['Alice Johnson', 'Bob Smith', 'Carol Davis'], role: ['Designer', 'Developer', 'Manager'], image: ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'] },
       'services': { title: ['Web Design', 'Branding', 'SEO'], duration: ['2 weeks', '4 weeks', '8 weeks'], description: ['Professional design', 'Full brand identity', 'Search optimization'] },
       'bookends': { title: ['The Great Gatsby', '1984', 'To Kill a Mockingbird'], author: ['F. Scott Fitzgerald', 'George Orwell', 'Harper Lee'], genre: ['Fiction', 'Dystopian', 'Classic'] },
@@ -145,6 +216,24 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
               <p className="input-settings-panel__help">
                 Choose the role this input will play in your context. The system automatically handles what happens when the user interacts with it.
               </p>
+
+              {(component.role === 'filter' || component.role === 'sort' || component.role === 'edit-update') && (
+                <div style={{ marginTop: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+                  <label className="input-settings-panel__label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={component.triggerOnChange !== false} 
+                      onChange={e => onChange({ triggerOnChange: e.target.checked })}
+                    />
+                    Trigger on change
+                  </label>
+                  <p className="input-settings-panel__help">
+                    {component.role === 'filter' ? 'Apply filter immediately when value changes' :
+                     component.role === 'sort' ? 'Apply sort immediately when value changes' :
+                     'Execute action immediately when value changes'}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="input-settings-panel__group">
@@ -163,7 +252,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                 disabled={!component.role}
               >
                 <option value="">Select field...</option>
-                {component.boundContext && (fieldOptions[component.boundContext] || []).map(f => <option key={f} value={f}>{f}</option>)}
+                {component.boundContext && (fieldOptions[component.boundContext] || []).map(f => <option key={f} value={f}>{getFieldIcon(f)} {f}</option>)}
               </select>
               <p className="input-settings-panel__help">
                 {component.role === 'edit-update' ? 'Input values will update the current item. Add a Submit button to save changes to the database.' :
@@ -172,141 +261,45 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
               </p>
             </div>
 
-            {component.role === 'filter' && (
+            {component.role === 'filter' && component.boundField && (
               <div className="input-settings-panel__group">
-                <h4 className="validation-section__title">Filter Execution</h4>
-                
-                <div style={{ marginBottom: '12px' }}>
-                  <label className="input-settings-panel__label">Trigger Mode</label>
-                  <select 
-                    className="input-settings-panel__select"
-                    value={component.filterTriggerMode || 'immediate'} 
-                    onChange={e => onChange({ filterTriggerMode: e.target.value })}
-                  >
-                    <option value="immediate">Immediate (on change)</option>
-                    <option value="button">Button click</option>
-                    <option value="conditional">Conditional</option>
-                  </select>
-                  <p className="input-settings-panel__help">
-                    Choose when the filter should be applied to the context.
-                  </p>
-                </div>
-
-                {component.filterTriggerMode === 'immediate' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <label className="input-settings-panel__label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={component.filterDebounce !== false} 
-                        onChange={e => onChange({ filterDebounce: e.target.checked ? 300 : false })}
-                      />
-                      Debounce input
-                    </label>
-                    {component.filterDebounce && (
-                      <div style={{ marginTop: '8px' }}>
-                        <label className="input-settings-panel__label">Debounce delay (ms)</label>
-                        <input 
-                          type="number" 
-                          className="input-settings-panel__input"
-                          value={component.filterDebounceDelay || 300}
-                          onChange={e => onChange({ filterDebounceDelay: parseInt(e.target.value) || 300 })}
-                          min={100}
-                          max={2000}
-                          step={100}
-                        />
-                        <p className="input-settings-panel__help">
-                          Reduce re-filtering frequency to improve performance.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {component.filterTriggerMode === 'button' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <label className="input-settings-panel__label">Connected Button</label>
-                    <select 
-                      className="input-settings-panel__select"
-                      value={component.filterTriggerButtonId || ''} 
-                      onChange={e => onChange({ filterTriggerButtonId: e.target.value })}
-                    >
-                      <option value="">Select a button...</option>
-                      <option value="apply-filters">Apply Filters</option>
-                      <option value="reset-filters">Reset Filters</option>
-                    </select>
-                    <p className="input-settings-panel__help">
-                      Select which button will trigger this filter when clicked.
-                    </p>
-                  </div>
-                )}
-
-                {component.filterTriggerMode === 'conditional' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <label className="input-settings-panel__label">Condition Type</label>
-                    <select 
-                      className="input-settings-panel__select"
-                      value={component.filterConditionType || 'length'} 
-                      onChange={e => onChange({ filterConditionType: e.target.value })}
-                    >
-                      <option value="length">Input length</option>
-                      <option value="value">Value matches</option>
-                      <option value="custom">Custom function</option>
-                    </select>
-
-                    {component.filterConditionType === 'length' && (
-                      <div style={{ marginTop: '12px' }}>
-                        <label className="input-settings-panel__label">Minimum characters</label>
-                        <input 
-                          type="number" 
-                          className="input-settings-panel__input"
-                          value={component.filterConditionValue || 3}
-                          onChange={e => onChange({ filterConditionValue: parseInt(e.target.value) || 3 })}
-                          min={1}
-                          max={100}
-                        />
-                        <p className="input-settings-panel__help">
-                          Filter will only apply when input has this many characters or more.
-                        </p>
-                      </div>
-                    )}
-
-                    {component.filterConditionType === 'value' && (
-                      <div style={{ marginTop: '12px' }}>
-                        <label className="input-settings-panel__label">Match pattern</label>
-                        <input 
-                          type="text" 
-                          className="input-settings-panel__input"
-                          value={component.filterConditionValue || ''} 
-                          onChange={e => onChange({ filterConditionValue: e.target.value })}
-                          placeholder="e.g. prefix or regex"
-                        />
-                        <p className="input-settings-panel__help">
-                          Filter will apply when input matches this pattern.
-                        </p>
-                      </div>
-                    )}
-
-                    {component.filterConditionType === 'custom' && (
-                      <div style={{ marginTop: '12px' }}>
-                        <label className="input-settings-panel__label">Custom function</label>
-                        <input 
-                          type="text" 
-                          className="input-settings-panel__input"
-                          value={component.filterConditionCustomFn || ''} 
-                          onChange={e => onChange({ filterConditionCustomFn: e.target.value })}
-                          placeholder="e.g. isValidFilter"
-                        />
-                        <p className="input-settings-panel__help">
-                          Enter the name of a function that returns true when filter should apply.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <label className="input-settings-panel__label">Condition</label>
+                <select 
+                  className="input-settings-panel__select"
+                  value={component.filterCondition || ''} 
+                  onChange={e => onChange({ filterCondition: e.target.value })}
+                >
+                  <option value="">Select condition...</option>
+                  {getConditionsForField(component.boundField).map(cond => (
+                    <option key={cond.value} value={cond.value}>{cond.label}</option>
+                  ))}
+                </select>
+                <p className="input-settings-panel__help">
+                  Select the filter condition to apply to the chosen field.
+                </p>
               </div>
             )}
 
-            {hasOptions && (
+            {component.role === 'sort' && component.boundField && (
+              <div className="input-settings-panel__group">
+                <label className="input-settings-panel__label">Sort Order</label>
+                <select 
+                  className="input-settings-panel__select"
+                  value={component.sortOrder || ''} 
+                  onChange={e => onChange({ sortOrder: e.target.value })}
+                >
+                  <option value="">Select sort order...</option>
+                  {getSortOptionsForField(component.boundField).map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <p className="input-settings-panel__help">
+                  Choose how to sort items by this field.
+                </p>
+              </div>
+            )}
+
+            {hasOptions && (component.role !== 'filter' && component.role !== 'sort') && (
               <div className="input-settings-panel__group">
                 <label className="input-settings-panel__label">Options Source</label>
                 <select 
@@ -390,103 +383,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
               </div>
             )}
 
-            {(component.role === 'edit-update' || component.role === 'edit-create') && component.boundField && (
-              <div className="input-settings-panel__group">
-                <h4 className="validation-section__title">Execution Mode</h4>
-                
-                <div style={{ marginBottom: '12px' }}>
-                  <label className="input-settings-panel__label">When to save</label>
-                  <select 
-                    className="input-settings-panel__select"
-                    value={component.executionMode || 'buttonClick'} 
-                    onChange={e => onChange({ executionMode: e.target.value })}
-                  >
-                    <option value="buttonClick">On button click (Recommended)</option>
-                    <option value="onChange">On change (Auto-save)</option>
-                    <option value="onBlur">On blur (Field exit)</option>
-                  </select>
-                  <p className="input-settings-panel__help">
-                    Choose when the field value should be saved to the context.
-                  </p>
-                </div>
-
-                {component.executionMode === 'buttonClick' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <label className="input-settings-panel__label">Connected Button</label>
-                    <select 
-                      className="input-settings-panel__select"
-                      value={component.executionTriggerButtonId || ''} 
-                      onChange={e => onChange({ executionTriggerButtonId: e.target.value })}
-                    >
-                      <option value="">Select a button...</option>
-                      <option value="submit-create">Submit Create</option>
-                      <option value="submit-update">Submit Update</option>
-                    </select>
-                    <p className="input-settings-panel__help">
-                      Select which button will trigger the save when clicked.
-                    </p>
-
-                    <div style={{ marginTop: '12px' }}>
-                      <label className="input-settings-panel__label">On Conflict</label>
-                      <select 
-                        className="input-settings-panel__select"
-                        value={component.conflictResolution || 'ask'} 
-                        onChange={e => onChange({ conflictResolution: e.target.value })}
-                      >
-                        <option value="ask">Ask user</option>
-                        <option value="overwrite">Overwrite</option>
-                        <option value="merge">Merge changes</option>
-                      </select>
-                      <p className="input-settings-panel__help">
-                        What to do if data was modified externally.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {component.executionMode === 'onChange' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <label className="input-settings-panel__label">Auto-save delay (ms)</label>
-                    <input 
-                      type="number" 
-                      className="input-settings-panel__input"
-                      value={component.autoSaveDelay || 500}
-                      onChange={e => onChange({ autoSaveDelay: parseInt(e.target.value) || 500 })}
-                      min={100}
-                      max={5000}
-                      step={100}
-                    />
-                    <p className="input-settings-panel__help">
-                      Wait this long after user stops typing before saving automatically.
-                    </p>
-
-                    <div style={{ marginTop: '12px' }}>
-                      <label className="input-settings-panel__label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={component.showAutoSaveIndicator !== false} 
-                          onChange={e => onChange({ showAutoSaveIndicator: e.target.checked })}
-                        />
-                        Show saving indicator
-                      </label>
-                      <p className="input-settings-panel__help">
-                        Display visual feedback when auto-saving to the user.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {component.executionMode === 'onBlur' && (
-                  <div style={{ marginBottom: '12px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>
-                      This field will be saved whenever the user moves focus away from it.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {component.boundField && (component.role === 'edit-update' || component.role === 'edit-create' || component.role === 'filter' || component.role === 'sort') && (
+            {component.boundField && (component.role === 'edit-update' || component.role === 'edit-create') && (
               <div className="input-settings-panel__group validation-section">
                 <h4 className="validation-section__title">Validation Rules</h4>
                 
@@ -501,7 +398,7 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
                   </ul>
                 </div>
 
-                {(component.role === 'edit-update' || component.role === 'edit-create' || component.role === 'filter' || component.role === 'sort') && (
+                {(component.role === 'edit-update' || component.role === 'edit-create') && (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
                     <div className="cms-validation">
                       <span className="cms-validation__label">Component Level</span>
