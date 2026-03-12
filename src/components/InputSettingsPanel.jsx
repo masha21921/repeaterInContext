@@ -385,82 +385,65 @@ export function InputSettingsPanel({ component, onChange, onClose, availableCont
 
             {component.boundField && (component.role === 'edit-update' || component.role === 'edit-create') && (
               <div className="input-settings-panel__group validation-section">
-                <h4 className="validation-section__title">Validation Rules</h4>
+                <h4 className="validation-section__title">Validation</h4>
                 
                 <div className="cms-validation">
-                  <span className="cms-validation__label">From Context Schema (Always Applied)</span>
-                  <ul className="cms-validation__list">
+                  <span className="cms-validation__label" style={{ fontSize: '12px', color: '#666' }}>Context Schema (applied automatically)</span>
+                  <ul className="cms-validation__list" style={{ marginTop: '6px', marginBottom: '12px' }}>
                     <li>Required: Yes</li>
                     {component.boundField === 'phone' && <li>Min length: 8</li>}
                     {component.boundField === 'price' && <li>Type: Number</li>}
                     {component.boundField === 'email' && <li>Format: Email</li>}
                     {component.boundField === 'title' && <li>Max length: 200</li>}
                   </ul>
-                  <p className="input-settings-panel__help" style={{ marginTop: '8px', fontStyle: 'italic' }}>
-                    These validations from your context schema cannot be modified here.
-                  </p>
                 </div>
 
-                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
-                  <span className="cms-validation__label">Add Additional Validation</span>
-                  
-                  <div style={{ marginTop: '12px' }}>
-                    <label className="input-settings-panel__label">Custom Validation Function</label>
-                    <select 
-                      className="input-settings-panel__select"
-                      value={component.customValidation || ''} 
-                      onChange={e => onChange({ customValidation: e.target.value })}
-                    >
-                      <option value="">None</option>
-                      {component.boundContext && (
-                        <optgroup label="Available Functions">
-                          <option value="validateEmail">validateEmail</option>
-                          <option value="validatePhone">validatePhone</option>
-                          <option value="validatePostalCode">validatePostalCode</option>
-                          <option value="checkUniqueness">checkUniqueness</option>
-                          <option value="custom">Custom (Enter function name)</option>
-                        </optgroup>
-                      )}
-                      {!component.boundContext && (
+                <div style={{ marginTop: '12px' }}>
+                  <label className="input-settings-panel__label">Add Custom Validation</label>
+                  <select 
+                    className="input-settings-panel__select"
+                    value={component.customValidation || ''} 
+                    onChange={e => onChange({ customValidation: e.target.value })}
+                  >
+                    <option value="">None</option>
+                    {component.boundContext && (
+                      <optgroup label="Available Functions">
+                        <option value="validateEmail">validateEmail</option>
+                        <option value="validatePhone">validatePhone</option>
+                        <option value="validatePostalCode">validatePostalCode</option>
+                        <option value="checkUniqueness">checkUniqueness</option>
                         <option value="custom">Custom (Enter function name)</option>
-                      )}
-                    </select>
-                    <p className="input-settings-panel__help">
-                      Select a validation function from the context or enter a custom one.
-                    </p>
-                    
-                    {component.customValidation === 'custom' && (
-                      <div style={{ marginTop: '8px' }}>
-                        <input 
-                          type="text" 
-                          className="input-settings-panel__input"
-                          value={component.customValidationFunction || ''} 
-                          onChange={e => onChange({ customValidationFunction: e.target.value })} 
-                          placeholder="e.g. myCustomValidator" 
-                        />
-                        <p className="input-settings-panel__help">
-                          Enter the custom function name from your Velo code.
-                        </p>
-                      </div>
+                      </optgroup>
                     )}
-                  </div>
-
-                  {component.type === 'textInput' && (
-                    <div style={{ marginTop: '12px' }}>
-                      <label className="input-settings-panel__label">Regex Pattern</label>
-                      <input 
-                        type="text" 
-                        className="input-settings-panel__input"
-                        value={component.regex || ''} 
-                        onChange={e => onChange({ regex: e.target.value })} 
-                        placeholder="e.g. ^[0-9]+$" 
-                      />
-                      <p className="input-settings-panel__help">
-                        Define a regex pattern for additional format validation.
-                      </p>
-                    </div>
+                    {!component.boundContext && (
+                      <option value="custom">Custom (Enter function name)</option>
+                    )}
+                  </select>
+                  
+                  {component.customValidation === 'custom' && (
+                    <input 
+                      type="text" 
+                      className="input-settings-panel__input"
+                      value={component.customValidationFunction || ''} 
+                      onChange={e => onChange({ customValidationFunction: e.target.value })} 
+                      placeholder="e.g. myCustomValidator"
+                      style={{ marginTop: '8px' }}
+                    />
                   )}
                 </div>
+
+                {component.type === 'textInput' && (
+                  <div style={{ marginTop: '12px' }}>
+                    <label className="input-settings-panel__label">Regex Pattern</label>
+                    <input 
+                      type="text" 
+                      className="input-settings-panel__input"
+                      value={component.regex || ''} 
+                      onChange={e => onChange({ regex: e.target.value })} 
+                      placeholder="e.g. ^[0-9]+$" 
+                    />
+                  </div>
+                )}
               </div>
             )}
           </>
