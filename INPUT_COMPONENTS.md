@@ -8,7 +8,7 @@ The Input Components editor enables designers and developers to create interacti
 
 ### Input Purpose (What is this input for?)
 
-Instead of thinking in terms of technical `onChange` event handlers, the system uses **Input Purpose**—a semantic, user-friendly way to describe what an input does in your application.
+Instead of thinking in terms of technical `onChange` event handlers, the system uses **Input Purpose**—a semantic, user-friendly way to describe what an input does in your application. Also known as the `onChange` handler conceptually.
 
 **Available Input Purposes:**
 
@@ -17,6 +17,7 @@ Instead of thinking in terms of technical `onChange` event handlers, the system 
    - Changes are saved to a draft state
    - Requires a "Submit" button to persist changes to the database
    - Includes validation rules
+   - *Note: "Trigger on change" is unchecked by default for updates*
 
 2. **Edit Field - Create New Item**
    - Populates fields for a brand new item being created
@@ -29,24 +30,23 @@ Instead of thinking in terms of technical `onChange` event handlers, the system 
    - Can apply immediately on change or wait for an "Apply Filters" button
    - Supports cascading filters (multiple filters work together automatically)
    - Only shows valid options in dependent filters
+   - *Note: "Trigger on change" is checked by default for filters*
 
 4. **Sort Items**
    - Sorts the context's items by the selected field
    - Can sort ascending or descending
-
-5. **Custom Behavior (Velo)**
-   - For advanced use cases where you need to run custom Velo code
-   - Full control over what happens when the input value changes
+   - *Note: Only available for dropdowns, not text inputs*
 
 ### Input Types
 
 #### Text Input
-- **Purpose Options**: Edit Field (Update/Create), Filter, Sort, Custom
+- **Purpose Options**: Edit Field (Update/Create), Filter only
+  - Sort is not available for text inputs
 - **Target Field**: Connects to a specific field in the context
 - **No special options**: Updates directly
 
 #### Dropdown
-- **Purpose Options**: Edit Field (Update/Create), Filter, Sort, Custom
+- **Purpose Options**: Edit Field (Update/Create), Filter, Sort
 - **Target Field**: Connects to a specific field in the context
 - **Options Source**: Determines where dropdown choices come from
   - **Dynamic (From Context)**
@@ -55,7 +55,7 @@ Instead of thinking in terms of technical `onChange` event handlers, the system 
   - **Static (Manual)**: User defines a comma-separated list of options
 
 #### Button
-- **Purposes**: Submit Create, Submit Update, Apply Filters, Delete Item, Custom
+- **Purposes**: Submit Create, Submit Update, Apply Filters, Delete Item
 - **No target field needed**: Triggers an action when clicked
 - **Connected to a context**: Performs the action on items in that context
 
@@ -125,7 +125,7 @@ When you select a component on the canvas, a floating toolbar appears with:
 - **Selected, Not Connected**: Blue border (indicates selected but not yet bound)
 
 ### Settings Panel Structure
-The component settings panel has two tabs:
+The component settings panel displays the component type (Text Input, Dropdown, or Button) at the top, and has two tabs:
 
 **Design Tab:**
 - **Placeholder Text** (Text inputs): Default text shown when empty
@@ -133,19 +133,25 @@ The component settings panel has two tabs:
 
 **Settings Tab:**
 - All binding configuration (Select Source, Input Purpose, Target Field, etc.)
-- Validation Rules section with context schema and component-level overrides
+- Validation Rules section with context schema and multiple component-level overrides
 
 ## Validation
 
-### Context Schema Validation (Read-only)
+### Context Schema Validation (Always Applied)
 When an input is set to "Edit Field" (Update or Create), the Validation Rules section shows:
-- **From Context Schema**: Auto-generated validation rules from your CMS schema
+- **From Context Schema (Read-only)**: Auto-generated validation rules from your CMS schema
   - Required status
   - Type constraints (e.g., Email, Number)
   - Min/Max length rules
+  - These cannot be modified and are always enforced
 
 ### Component Level Validation
 Add custom validation beyond the schema:
+
+**Multiple Custom Validations:**
+- Click "+ Add" to add additional validation rules
+- Each validation can be independently configured and removed
+- Supports unlimited custom validations
 
 **Custom Validation Function:**
 - Select from pre-built validation functions (validateEmail, validatePhone, validatePostalCode, checkUniqueness)
@@ -179,10 +185,6 @@ You don't need to manually connect filters. Just:
 
 ### 6. Use Static Options Sparingly
 Static option lists require manual maintenance. Use dynamic options when possible so they stay in sync with your data.
-
-## Advanced: Custom Behavior
-
-For scenarios not covered by standard purposes, select "Custom Behavior (Velo)" and write custom code to handle the input. This gives you full control but requires Velo knowledge.
 
 ## Troubleshooting
 
